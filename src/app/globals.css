@@ -1,0 +1,126 @@
+@import "tailwindcss";
+
+@theme {
+  /* --- 1. FONTLAR (Artı Optik v1.0 - Final Typography) --- */
+  /* Display Font: DM Sans (Tech Luxury / Native App Feel) */
+  --font-display: var(--font-display);
+  /* Body Font: Plus Jakarta Sans */
+  --font-body: var(--font-body);
+  /* Numbers Font: Manrope */
+  --font-numbers: var(--font-numbers);
+
+  /* --- 2. RENKLER (Shadcn & Ferrari Red + Espresso Dark Mapping) --- */
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+
+  /* --- 3. RADIUS (Köşe Yuvarlaklığı) --- */
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+
+  /* --- 4. ANİMASYONLAR --- */
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+
+  @keyframes accordion-down {
+    from { height: 0; }
+    to { height: var(--radix-accordion-content-height); }
+  }
+  @keyframes accordion-up {
+    from { height: var(--radix-accordion-content-height); }
+    to { height: 0; }
+  }
+}
+
+/* --- DEĞİŞKENLER (FERRARI RED + ESPRESSO DARK TEMA) --- */
+:root {
+  /* LIGHT MODE: Pudra Beyazı & Ferrari Kırmızısı */
+  --background: oklch(0.971 0.013 17.38); /* Pudra Beyazı */
+  --foreground: oklch(0.258 0.092 26.042); /* Espresso (Yazı) */
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.258 0.092 26.042);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.258 0.092 26.042);
+  
+  /* FERRARI RED (Shadcn Red - Canlı, Enerjik Kırmızı) */
+  --primary: oklch(0.577 0.245 27.325); 
+  --primary-foreground: oklch(1 0 0);
+
+  --secondary: oklch(0.92 0.01 17.38);
+  --secondary-foreground: oklch(0.258 0.092 26.042);
+  --muted: oklch(0.92 0.01 17.38);
+  --muted-foreground: oklch(0.55 0.05 26.042);
+  --accent: oklch(0.92 0.01 17.38);
+  --accent-foreground: oklch(0.258 0.092 26.042);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.971 0.013 17.38);
+  --border: oklch(0.85 0.02 17.38);
+  --input: oklch(0.85 0.02 17.38);
+  --ring: oklch(0.577 0.245 27.325);
+  --radius: 0.5rem;
+  
+  /* Harf Aralıkları (Lüks için) */
+  --tracking-tighter: -0.05em;
+  --tracking-widest: 0.15em;
+}
+
+.dark {
+  /* DARK MODE: Espresso Kahve & Ferrari Kırmızısı */
+  --background: oklch(0.141 0.005 285.823); /* Espresso (Zemin) */
+  --foreground: oklch(0.971 0.013 17.38); /* Pudra (Yazı) */
+  
+  /* Kartlar zeminden biraz daha açık (Sütlü Espresso) */
+  --card: oklch(0.30 0.092 26.042);
+  --card-foreground: oklch(0.971 0.013 17.38);
+  --popover: oklch(0.30 0.092 26.042);
+  --popover-foreground: oklch(0.971 0.013 17.38);
+
+  /* Ferrari Red (Shadcn Red - Koyu modda da aynı vivid kırmızı) */
+  --primary: oklch(0.577 0.245 27.325);
+  --primary-foreground: oklch(1 0 0);
+
+  --secondary: oklch(0.35 0.092 26.042);
+  --secondary-foreground: oklch(0.971 0.013 17.38);
+  --muted: oklch(0.35 0.092 26.042);
+  --muted-foreground: oklch(0.70 0.05 26.042);
+  --accent: oklch(0.35 0.092 26.042);
+  --accent-foreground: oklch(0.971 0.013 17.38);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.971 0.013 17.38);
+  --border: oklch(0.35 0.092 26.042);
+  --input: oklch(0.35 0.092 26.042);
+  --ring: oklch(0.577 0.245 27.325);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground font-body;
+  }
+}

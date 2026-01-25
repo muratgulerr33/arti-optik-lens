@@ -1,0 +1,118 @@
+{
+  "source": "00.chatgpt-master-pack-19-01-2026.md",
+  "generatedAt": "2026-01-25T01:20:35.750Z",
+  "docs": [
+    {
+      "id": "01",
+      "file": "doc-01.md",
+      "title": "01.project-brief.md",
+      "sha256": "c19ed122249a88d79ee77e53f84bb422ed080b44ba85c7d9910f8a9debb7a856",
+      "bytes": 15736,
+      "lines": 387
+    },
+    {
+      "id": "02",
+      "file": "doc-02.md",
+      "title": "02.architecture-lock.md",
+      "sha256": "bd5d37a4122d695174c438877afed5b9e0b28606e3b8167de1885a3101bfaba1",
+      "bytes": 37461,
+      "lines": 592
+    },
+    {
+      "id": "03",
+      "file": "doc-03.md",
+      "title": "03.routes-and-navigation-map.md",
+      "sha256": "7310686f6c1cda6a5e5f1b5ebe228079b084a85d4eeb0ee5d97493bac5b5c60a",
+      "bytes": 27412,
+      "lines": 481
+    },
+    {
+      "id": "04",
+      "file": "doc-04.md",
+      "title": "04.design-system.md",
+      "sha256": "7971a94be79f05267875974e5ac9742a085f659b177542f15744173805b9e572",
+      "bytes": 30310,
+      "lines": 741
+    },
+    {
+      "id": "05",
+      "file": "doc-05.md",
+      "title": "05.native-ux-rules.md",
+      "sha256": "e2a510921d89deddd7be5ba8e89def76bd2a47da23032b87f2edefb186b39886",
+      "bytes": 29811,
+      "lines": 422
+    },
+    {
+      "id": "06",
+      "file": "doc-06.md",
+      "title": "06.frontend-standards-2026.md",
+      "sha256": "1e2ed99c13f5c93329e07b6e0e60b9107ed6d391d971a869f121311faf4df886",
+      "bytes": 22924,
+      "lines": 443
+    },
+    {
+      "id": "07",
+      "file": "doc-07.md",
+      "title": "07.component-inventory.md",
+      "sha256": "b6b9c9874d1f6a6700304a307fee57a16531d4be9baaea922f8372aa34b67dd7",
+      "bytes": 31526,
+      "lines": 517
+    },
+    {
+      "id": "08",
+      "file": "doc-08.md",
+      "title": "08.api-contracts-frontend.md",
+      "sha256": "61172b462eff146718c9739947e86170286344ac11cce352c98ad5297bc6118f",
+      "bytes": 23356,
+      "lines": 484
+    },
+    {
+      "id": "09",
+      "file": "doc-09.md",
+      "title": "09.data-fetching-cache-rules.md",
+      "sha256": "6da8fd9d463343ef6a8ebee155133cb12f9f7d9cccfddafc265ffa23b83bf86e",
+      "bytes": 28414,
+      "lines": 680
+    },
+    {
+      "id": "10",
+      "file": "doc-10.md",
+      "title": "10.tasks-playbook.md",
+      "sha256": "4aaa77d00ca1668fa3c1bc5c0b57535e2c00be52b69d4f76ccac17d0bdd030b7",
+      "bytes": 33769,
+      "lines": 855
+    },
+    {
+      "id": "11",
+      "file": "doc-11.md",
+      "title": "11.qa-test-matrix.md",
+      "sha256": "ab6590ff49a0546281648fa7f03d41f08f4910d985da5bbc4681b9065c2ec892",
+      "bytes": 26816,
+      "lines": 547
+    },
+    {
+      "id": "12",
+      "file": "doc-12.md",
+      "title": "12.release-prod-checklist.md",
+      "sha256": "28e4ac33c3d2669d04f3a4a0ebb428e3f94b8e399d92e455e6d0441cbf949620",
+      "bytes": 24614,
+      "lines": 509
+    },
+    {
+      "id": "13",
+      "file": "doc-13.md",
+      "title": "13.security-and-deps.md",
+      "sha256": "e20e1e0a3a20867ad8d425abb25ee176ccea7434ec9764959db18cd7286827b6",
+      "bytes": 23538,
+      "lines": 515
+    },
+    {
+      "id": "14",
+      "file": "doc-14.md",
+      "title": "14.ChatGPT-bridge-instructions.md",
+      "sha256": "d9b949719553f6b787e2dbf717c09efc0fc4e39484420d0b822d6be4d73197c5",
+      "bytes": 50082,
+      "lines": 1221
+    }
+  ]
+}

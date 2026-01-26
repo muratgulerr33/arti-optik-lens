@@ -82,6 +82,48 @@ function inferGender(breadcrumb) {
   return 'unisex';
 }
 
+// Shape heuristik (slug/name/breadcrumb'ten)
+function inferShape(item) {
+  const shapeKeywords = {
+    'aviator': 'aviator',
+    'pilot': 'aviator',
+    'wayfarer': 'wayfarer',
+    'round': 'round',
+    'yuvarlak': 'round',
+    'square': 'square',
+    'kare': 'square',
+    'rectangular': 'rectangular',
+    'dikdörtgen': 'rectangular',
+    'geometric': 'geometric',
+    'geometrik': 'geometric',
+    'oversize': 'oversize',
+    'cat-eye': 'cat-eye',
+    'cat eye': 'cat-eye',
+    'kedi gözü': 'cat-eye',
+  };
+  
+  // Önce attributes'tan kontrol et
+  if (item.attributes && item.attributes.shape) {
+    return item.attributes.shape;
+  }
+  
+  // Sonra slug/name/breadcrumb'ten çıkar
+  const searchText = [
+    item.slug || '',
+    item.name || item.title || '',
+    ...(item.breadcrumb || item.categoryPath || [])
+  ].join(' ').toLowerCase();
+  
+  for (const [keyword, shape] of Object.entries(shapeKeywords)) {
+    if (searchText.includes(keyword)) {
+      return shape;
+    }
+  }
+  
+  // Bulunamazsa boş bırak
+  return null;
+}
+
 // Slug oluştur
 function createSlug(name) {
   return name
@@ -187,12 +229,19 @@ async function importSeed() {
         const stock = item.totalStock || item.stock || 0;
         const stockStatus = stock > 0 ? 'in_stock' : 'out_of_stock';
         const gender = inferGender(item.breadcrumb || item.categoryPath);
+        const shape = inferShape(item);
         const imageUrls = normalizeImageUrls(item.imageUrls || item.images || []);
         const sourceUrl = item.sourceUrl || item.url || null;
         const sourceData = {
           breadcrumb: item.breadcrumb || item.categoryPath || [],
           originalData: item,
         };
+        
+        // Attributes hazırla (shape bilgisini ekle)
+        const attributes = item.attributes || {};
+        if (shape) {
+          attributes.shape = shape;
+        }
         
         // Brand kontrolü
         let brandId = brandMap.get(brandSlug.toLowerCase());
@@ -202,7 +251,9 @@ async function importSeed() {
           continue;
         }
         
-        // Category kontrolü (V1 basit: default category)
+        // Category kontrolü (V1: 2 seviye kategori - gender + sunglasses)
+        // V1'de kategori derinliği 2 seviye: {gender} ve {gender}.sunglasses
+        // Shape/style bilgisi kategori değil, attribute olarak saklanır
         const categoryId = defaultCategoryId;
         if (!categoryId) {
           console.log(`⚠️  Kategori bulunamadı, atlanıyor`);
@@ -262,13 +313,14 @@ async function importSeed() {
         }).returning();
         
         // Variant insert (V1 basit: 1 default variant)
+        // attributes içinde shape bilgisi varsa saklanır (kategori değil, facet olarak)
         await db.insert(schema.productVariants).values({
           productId: product.id,
           sku: item.sku || item.productId || `SKU-${product.id}`,
           price: price.toString(),
           stock,
           stockStatus,
-          attributes: item.attributes || {},
+          attributes: attributes, // shape bilgisi içerir (varsa)
           images: imageUrls,
           isFeatured: false,
         });

@@ -38,14 +38,16 @@ export const brands = pgTable('brands', {
 
 // 2. KATEGORİLER (CATEGORIES - LTREE MİMARİSİ)
 // Klasik ParentID yerine Path (Yol) mantığı.
-// Örnek Path: 'Men.Sunglasses.Aviator'
+// V1 Örnek Path: 'men.sunglasses' (max 2 seviye)
+// Shape/Style bilgisi kategori değil, product_variants.attributes.shape attribute olarak saklanır
 export const categories = pgTable('categories', {
   id: serial('id').primaryKey(),
-  name: text('name').notNull(), // Örn: 'Aviator'
-  slug: text('slug').notNull(), // Örn: 'aviator'
+  name: text('name').notNull(), // Örn: 'Sunglasses'
+  slug: text('slug').notNull(), // Örn: 'sunglasses'
   
   // HİYERARŞİ BURADA:
-  // Root: 'Men', Child: 'Men.Sunglasses', Leaf: 'Men.Sunglasses.Aviator'
+  // V1: Root: 'men', Child: 'men.sunglasses' (max 2 seviye)
+  // Shape/Style (aviator, wayfarer, vb.) kategori değil, attribute olarak saklanır
   path: ltree('path').notNull(), 
 }, (t) => ({
   // GIST Index: Ağaç sorgularını (Alt kategorileri getir) fişek gibi yapar.

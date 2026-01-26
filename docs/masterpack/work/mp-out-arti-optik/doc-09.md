@@ -30,6 +30,20 @@ Bu doküman şu konuları kilitler:
 
 ---
 
+## V1 Scope Lock (Data Fetching Context)
+
+**V1 HARD RULES:**
+- **V1 = Sadece Online Storefront + Sadece GÜNEŞ GÖZLÜĞÜ**
+- **Lens/Numaralı Ürün:** Online satılmaz (V1 dışı, sadece mağaza/POS - V2)
+- **POS:** Tamamen V2 (placeholder/feature-flag, V1 scope'tan çıkarılmış)
+
+**Data Fetching Kapsamı:**
+- V1'de sadece güneş gözlüğü ürünleri için data fetching yapılır
+- Lens/numaralı ürünler için online storefront'ta data fetching yapılmaz
+- POS data fetching kuralları V2 placeholder olarak işaretlenmiştir
+
+---
+
 ## 2. Current Data Sources (Observed)
 
 ### 2.1 Database (PostgreSQL via Drizzle ORM)

@@ -4,7 +4,7 @@
 ---
 # 02. Architecture Lock
 
-Bu doküman, **ARTI OPTİK** projesinin (Storefront + Admin + POS) mimari kararlarını, değişmez kuralları ve yasakları tanımlar. Amaç: AI asistanların (Cursor/ChatGPT) yanlış değişiklik yapmasını önlemek ve tutarlı geliştirme sağlamak.
+Bu doküman, **ARTI OPTİK** projesinin (V1: Storefront + Admin, V2: POS) mimari kararlarını, değişmez kuralları ve yasakları tanımlar. Amaç: AI asistanların (Cursor/ChatGPT) yanlış değişiklik yapmasını önlemek ve tutarlı geliştirme sağlamak.
 
 **Son Güncelleme:** 2026-01-25  
 **Proje:** arti-optik-next (white-label: çekirdek storefront + ARTI OPTİK katalog/POS farkları)  
@@ -25,7 +25,7 @@ Bu doküman, **ARTI OPTİK** projesinin (Storefront + Admin + POS) mimari kararl
 8. 8. **Pagination standartları** - Storefront listelemelerinde "load more / cursor" kullanılabilir; Admin panelde tüm listeler zorunlu olarak sayfalı (pagination) çalışır (1000+ kayıt varmış gibi)
 9. **Sonner toast sistemi** - Feedback için (kanıt: `package.json` sonner@2.0.7, `src/app/layout.tsx` line 82)
 10. **Archive klasörü build/typecheck dışı** - `tsconfig.json` ve `eslint.config.mjs` exclude ediyor (kanıt: `tsconfig.json` line 34, `eslint.config.mjs` line 16)
-11. **POS modülü (Admin içinde)** - Barkod/ürün kodu okut → Enter → varsayılan "Nakit" ile hızlı satış, stok anlık düşer; ürün yoksa "Ürün ekle" akışı zorunlu
+11. **POS modülü (V2 - V1'de feature-flag ile kapalı)** - V2'de aktif olacak: Barkod/ürün kodu okut → Enter → varsayılan "Nakit" ile hızlı satış, stok anlık düşer; ürün yoksa "Ürün ekle" akışı zorunlu
 12. **İşlemi Geri Al (Ayarlar altında)** - Yanlış POS satışını geri almak için log ekranı + satır satır işlem listesi + geri al butonu; tümü pagination ile
 
 **Evidence:** `package.json`, `src/app/`, `src/components/`, `tsconfig.json`, `eslint.config.mjs`, `README.md`
@@ -93,7 +93,7 @@ Bu doküman, **ARTI OPTİK** projesinin (Storefront + Admin + POS) mimari kararl
 ### 2.9 Build & Environment
 - **Archive klasörü exclude** - `archive/**` klasörü TypeScript ve ESLint tarafından ignore edilir, build'e dahil edilmez (kanıt: `tsconfig.json` line 34, `eslint.config.mjs` line 16)
 - **Timezone Europe/Istanbul** - Tüm script'ler `TZ=Europe/Istanbul` ile çalışır (kanıt: `package.json` scripts, `next.config.ts` line 3)
-- **Environment variable loading** - `.env.local` öncelikli, sonra `.env` (kanıt: `src/db/connection.ts` lines 6-7, `scripts/woo-import.ts`)
+- **Environment variable loading** - `.env.local` öncelikli, sonra `.env` (kanıt: `src/db/connection.ts` lines 6-7)
 
 **Evidence:** `tsconfig.json`, `eslint.config.mjs`, `package.json`, `next.config.ts`, `src/db/connection.ts`
 
@@ -291,14 +291,14 @@ Bu doküman, **ARTI OPTİK** projesinin (Storefront + Admin + POS) mimari kararl
 - **DATABASE_URL** - PostgreSQL connection string (kanıt: `src/db/connection.ts` line 10, `README.md` lines 73-75)
 - **AUTH_SECRET** - NextAuth.js secret (kanıt: `src/auth.ts` line 17, `README.md` line 76)
 - **AUTH_URL** - NextAuth.js base URL (production) (kanıt: `README.md` line 78)
-- **WOO_BASE_URL, WOO_CONSUMER_KEY, WOO_CONSUMER_SECRET** - External Catalog Import (V2/Unknown) import script için (kanıt: `README.md` lines 80-82, `scripts/woo-import.ts`)
+- **WOO_BASE_URL, WOO_CONSUMER_KEY, WOO_CONSUMER_SECRET** - Unknown / TODO: verify in repo (External Catalog Import script not found in repo)
 - **WOO_IMPORT_MODE, WOO_IMPORT_LIMIT** - Import mode ve limit (kanıt: `README.md` lines 144-156)
-- **WOO_AUTH_MODE** - External Catalog Import (V2/Unknown) auth mode (basic/query) (kanıt: `README.md` line 168)
+- **WOO_AUTH_MODE** - Unknown / TODO: verify in repo (External Catalog Import script not found in repo)
 - **WOO_PRODUCT_STATUS** - Product status filter (default: publish) (kanıt: `README.md` line 164)
 > Not: ARTI OPTİK V1’de ürün girişi ağırlıklı manuel/admin. Import yöntemi V2/Unknown.
 
 
-**Evidence:** `src/db/connection.ts`, `src/auth.ts`, `README.md`, `scripts/woo-import.ts`
+**Evidence:** `src/db/connection.ts`, `src/auth.ts`, `README.md`
 
 ### 6.4 Fetch Wrapper
 - **Native fetch kullanılıyor** - Custom fetch wrapper yok, native `fetch` API kullanılıyor (kanıt: `src/components/catalog/load-more-grid.tsx` line 78)
@@ -610,4 +610,162 @@ src/
 ---
 
 **Not:** Bu doküman, repo'nun mevcut durumuna göre oluşturulmuştur. Yeni değişiklikler yapıldığında bu doküman güncellenmelidir.
+
+---
+
+## 16. SEO Metadata Standardı (V1 Runbook)
+
+### 16.1 Ürün Detail Metadata
+
+**V1 Zorunlu Kural:** Ürün detay sayfasında (`/urun/[slug]`) metadata title ve description içinde **"Stokta Var"** veya **"Stokta Yok"** bilgisi olmalıdır.
+
+**Pattern:**
+```typescript
+export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+  const product = await getProductBySlug(params.slug);
+  if (!product) notFound();
+  
+  const stockStatus = product.stockStatus === 'instock' ? 'Stokta Var' : 'Stokta Yok';
+  
+  return {
+    title: `${product.name} - ${stockStatus} | ARTI OPTİK`,
+    description: `${product.shortDescription || product.description} ${stockStatus}.`,
+  };
+}
+```
+
+**Evidence:** `src/app/urun/[slug]/page.tsx` (generateMetadata pattern)
+
+### 16.2 Canonical Base Domain
+
+**V1 Hard Rule:** Tüm canonical URL'ler `https://artioptiklens.com.tr` base'ini kullanır.
+
+**Pattern:**
+```typescript
+return {
+  metadataBase: new URL('https://artioptiklens.com.tr'),
+  alternates: {
+    canonical: `/urun/${product.slug}`,
+  },
+};
+```
+
+**Evidence:** `01.project-brief.md` (V1 Domain & SEO), `03.routes-and-navigation-map.md` (section 10.2: SEO Features)
+
+### 16.3 Next Metadata Type Uyumu
+
+**Kural:** `generateMetadata` fonksiyonu Next.js `Metadata` type'ını döndürmelidir. TypeScript tip hatası çıkmamalıdır.
+
+**Pattern:**
+```typescript
+import type { Metadata } from 'next';
+
+export async function generateMetadata(...): Promise<Metadata> {
+  // ...
+}
+```
+
+**Evidence:** `src/app/urun/[slug]/page.tsx` (generateMetadata type)
+
+### 16.4 Build-Safe DB Connection
+
+**Kural:** DB yoksa build kırılmamalı. `generateMetadata` içinde DB sorgusu yapılırken try/catch kullanılmalı veya build-safe yaklaşım uygulanmalıdır.
+
+**Pattern:**
+```typescript
+export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+  try {
+    const product = await getProductBySlug(params.slug);
+    if (!product) {
+      return {
+        title: 'Ürün Bulunamadı | ARTI OPTİK',
+        description: 'Aradığınız ürün bulunamadı.',
+      };
+    }
+    // ... metadata generation
+  } catch (error) {
+    // Build-safe fallback
+    return {
+      title: 'Ürün | ARTI OPTİK',
+      description: 'ARTI OPTİK - Güneş Gözlüğü',
+    };
+  }
+}
+```
+
+**Evidence:** `src/app/urun/[slug]/page.tsx` (generateMetadata implementation), `src/db/connection.ts` (DB connection pattern)
+
+---
+
+## 17. Local DB Runbook (Docker Compose + Drizzle + ltree)
+
+### 17.1 Docker Compose ile Postgres 16 Ayağa Kaldırma
+
+**Komut:**
+```bash
+docker compose up -d
+```
+
+**Not:** Container port mapping: Host `5433` → Container `5432` (5432 port'u dolu olabilir, bu projede 5433 kullanılır)
+
+**Evidence:** `docker-compose.yml` (ports: "5433:5432", image: postgres:16, container_name: arti-optik-postgres)
+
+### 17.2 Environment Configuration
+
+`.env.local` dosyasında `DATABASE_URL` tanımlanmalı:
+
+```env
+DATABASE_URL=postgresql://postgres:postgres@localhost:5433/artioplik
+```
+
+**Not:** 
+- Port `5433` kullanılır (Docker Compose port mapping)
+- DB adı (`artioplik`) ile repo klasör adı farklı olabilir; sorun değil (ama env'de tutarlı olmalı)
+
+**Evidence:** `docker-compose.yml` (ports: "5433:5432", POSTGRES_DB: artioplik), `.env.example`
+
+### 17.3 Setup Komutları (Sıralı)
+
+Local DB kurulumu için sıralı komutlar:
+
+```bash
+# 1. Docker Postgres container'ı başlat
+docker compose up -d
+
+# 2. PostgreSQL extensions'ları etkinleştir (ltree)
+npm run db:extensions
+
+# 3. Drizzle migration dosyalarını oluştur
+npm run db:generate
+
+# 4. Migration'ları uygula (schema oluştur)
+npm run db:migrate
+
+# 5. Marka seed'ini çalıştır (idempotent)
+npm run seed:brands
+```
+
+**Evidence:** `package.json` (scripts: db:extensions, db:generate, db:migrate, seed:brands), `tools/db/enable-extensions.mjs` (ltree extension), `drizzle.config.ts` (Drizzle config)
+
+### 17.4 Doğrulama
+
+DB kurulumunu doğrulamak için:
+
+```bash
+# Container çalışıyor mu?
+docker ps | grep arti-optik-postgres
+
+# Drizzle schema var mı?
+docker exec -it arti-optik-postgres psql -U postgres -d artioplik -c "\dn"
+
+# Brands tablosunda kayıt var mı?
+docker exec -it arti-optik-postgres psql -U postgres -d artioplik -c "SELECT COUNT(*) FROM brands;"
+```
+
+**Expected output:** 
+- Drizzle schema (`drizzle`) görünmeli
+- Brands tablosunda 18 marka olmalı (V1 için)
+
+**Evidence:** `tools/seed/seed-brands.mjs` (18 marka: Ray-Ban, Oakley, Prada, Miu Miu, Chanel, Versace, Dolce&Gabbana, Gucci, Tom Ford, Burberry, Swarovski, Michael Kors, Emporio Armani, Armani Exchange, Calvin Klein, Vogue, Lacoste, Persol)
+
 ---

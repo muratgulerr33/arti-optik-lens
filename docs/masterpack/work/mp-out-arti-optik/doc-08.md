@@ -6,7 +6,7 @@
 
 Bu doküman, ARTI OPTİK V1 projesindeki frontend'in konuştuğu tüm API sözleşmelerini "tek doğru kaynak" olarak tanımlar. Amaç: AI asistanların (Cursor/ChatGPT) uydurma endpoint/alan üretmesini engellemek ve mevcut API contract'larını doğru şekilde kullanmasını sağlamak.
 
-**Last verified from package.json:** 2025-12-31  
+**Last verified from repo scan (package.json):** 2026-01-26  
 **Proje:** ARTI OPTİK V1  
 **Next.js:** 16.1.1  
 **React:** 19.2.3
@@ -29,7 +29,7 @@ Bu doküman şunları kapsar:
 Bu doküman şunları kapsamaz:
 
 - Backend/DB query detayları (sadece API contract'ları)
-- External Catalog Import (V2/Unknown) import script API çağrıları (frontend'den kullanılmıyor)
+- External Catalog Import: Unknown / TODO: verify in repo (import script not found in repo, frontend'den kullanılmıyor)
 - Internal Drizzle ORM query'leri (sadece API response shape'leri)
 
 **Evidence:** `src/app/api/`, `src/actions/`, `02.architecture-lock.md` (lines 250-264)
@@ -67,12 +67,12 @@ Frontend, internal API route'larına **relative path** ile erişir:
 
 Frontend'den kullanılan environment variable'lar:
 
-- **As of repo scan (2025-12-31):** Frontend'de `NEXT_PUBLIC_*` env variable'ları kullanılmıyor (kanıt: grep sonucu boş)
+- **As of repo scan (2026-01-26):** Frontend'de `NEXT_PUBLIC_*` env variable'ları kullanılmıyor (kanıt: `rg -n "NEXT_PUBLIC_" src` sonucu 0)
 - **Backend env'ler:** `DATABASE_URL`, `AUTH_SECRET`, `AUTH_URL` backend'de kullanılıyor, frontend'den erişilmiyor
 
 **Assumption:** Frontend tüm API çağrılarını relative path ile yapıyor, external API base URL'i yok.
 
-**Evidence:** `grep -r "NEXT_PUBLIC_"` (sonuç: 0 dosya, scan date: 2025-12-31), `01.project-brief.md` (lines 220-232: env variables backend-only)
+**Evidence:** `rg -n "NEXT_PUBLIC_" src` (sonuç: 0, scan date: 2026-01-26), `01.project-brief.md` (lines 220-232: env variables backend-only)
 
 ---
 
@@ -229,9 +229,9 @@ Frontend'den kullanılan environment variable'lar:
 
 ## 6. API Inventory (External / Remote APIs)
 
-**As of repo scan (2025-12-31):** Frontend'den direkt external API çağrısı yok. Tüm API çağrıları internal route handler'lar veya server actions üzerinden yapılıyor.
+**As of repo scan (2026-01-26):** Frontend'de `fetch(` çağrısı bulunamadı ve `package.json`'da bilinen HTTP client bağımlılığı yok (axios/ky/node-fetch/undici/superagent/got/ofetch/graphql-request). Bu nedenle frontend'den direkt external API çağrısı için bulgu yok.
 
-**Evidence:** `grep -r "fetch("` (tüm fetch çağrıları `/api/*` pattern'i, scan date: 2025-12-31), `codebase_search` (external API base URL yok)
+**Evidence:** `rg -n "fetch\\(" src` (sonuç: 0, scan date: 2026-01-26), `rg -n "\"(axios|ky|node-fetch|undici|superagent|got|ofetch|graphql-request)\"" package.json` (sonuç: 0)
 
 ---
 
@@ -375,7 +375,7 @@ Frontend'den kullanılan environment variable'lar:
 
 **Evidence:** `src/app/api/search/route.ts` (lines 8-107), `src/components/search/search-overlay.tsx` (lines 144-152)
 
-### 7.7 Admin + POS Contracts
+### 7.7 Admin + POS Contracts (V2 - V1'de feature-flag ile kapalı)
 
 **V1 HARD RULES:**
 - Admin list sayfaları MUTLAKA paginated olmalı (cursor veya page-based, tutarlı olmalı; 1000 kayıt dump edilmemeli)
@@ -480,7 +480,7 @@ Frontend'den kullanılan environment variable'lar:
 ```typescript
 z.object({
   addressId: z.number().int().positive(),
-  paymentMethod: z.enum(["credit_card", "cod"]),
+  paymentMethod: z.enum(["credit_card"]), // V1: Sadece kredi kartı (PayTR), COD yok
   cartItems: z.array(z.object({
     productId: z.number().int().positive(),
     quantity: z.number().int().positive().max(99),

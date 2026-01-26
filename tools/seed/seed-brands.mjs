@@ -2,7 +2,7 @@
 
 /**
  * Marka Seed Script
- * V1 için 18 markayı brands tablosuna ekler
+ * V1 için 17 markayı brands tablosuna ekler
  */
 
 import { drizzle } from 'drizzle-orm/node-postgres';
@@ -25,25 +25,25 @@ const schema = schemaModule.default || schemaModule;
 
 const db = drizzle(pool, { schema });
 
-// V1 için 18 marka listesi
+// V1 için 17 marka listesi
 const BRAND_SEEDS = [
   { name: 'Ray-Ban', slug: 'ray-ban' },
   { name: 'Oakley', slug: 'oakley' },
   { name: 'Prada', slug: 'prada' },
-  { name: 'Gucci', slug: 'gucci' },
+  { name: 'Miu Miu', slug: 'miu-miu' },
   { name: 'Versace', slug: 'versace' },
+  { name: 'Dolce & Gabbana', slug: 'dolce-gabbana' },
+  { name: 'Gucci', slug: 'gucci' },
   { name: 'Tom Ford', slug: 'tom-ford' },
-  { name: 'Dior', slug: 'dior' },
-  { name: 'Chanel', slug: 'chanel' },
+  { name: 'Burberry', slug: 'burberry' },
+  { name: 'Swarovski', slug: 'swarovski' },
+  { name: 'Michael Kors', slug: 'michael-kors' },
+  { name: 'Emporio Armani', slug: 'emporio-armani' },
+  { name: 'Armani Exchange', slug: 'armani-exchange' },
+  { name: 'Calvin Klein', slug: 'calvin-klein' },
+  { name: 'Vogue Eyewear', slug: 'vogue-eyewear' },
+  { name: 'Lacoste', slug: 'lacoste' },
   { name: 'Persol', slug: 'persol' },
-  { name: 'Maui Jim', slug: 'maui-jim' },
-  { name: 'Costa Del Mar', slug: 'costa-del-mar' },
-  { name: 'Warby Parker', slug: 'warby-parker' },
-  { name: 'Oliver Peoples', slug: 'oliver-peoples' },
-  { name: 'Moscot', slug: 'moscot' },
-  { name: 'Cutler and Gross', slug: 'cutler-and-gross' },
-  { name: 'Jacques Marie Mage', slug: 'jacques-marie-mage' },
-  { name: 'Mykita', slug: 'mykita' },
 ];
 
 async function seedBrands() {
@@ -57,6 +57,9 @@ async function seedBrands() {
       isActive: true,
     }));
 
+    // Idempotent insert: slug unique constraint'i üzerinde conflict kontrolü
+    // Not: PostgreSQL'de ON CONFLICT sadece bir unique constraint üzerinde çalışır
+    // Slug zaten varsa (name de muhtemelen aynıdır), o satırı atla
     await db
       .insert(schema.brands)
       .values(rows)

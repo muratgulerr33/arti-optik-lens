@@ -43,7 +43,7 @@ Next.js App Router kullanılıyor. Tüm route'lar `src/app/` altında tanımlı.
 | `/search` | `src/app/search/page.tsx` | Page | - | Server Component | Direct DB (Drizzle: `db`, `products`, `categories`, `productCategories`, `drizzle-orm`) | Public | Arama sonuçları, `searchParams.q` kullanıyor, Suspense var (kanıt: lines 3-5, 17-36) |
 | `/categories` | `src/app/categories/page.tsx` | Page | - | Unknown | Unknown | Public | Kategori listesi sayfası |
 | `/hub` | `src/app/hub/page.tsx` | Page | - | Server Component | Static (HUBS config) | Public | Hub index (Bento grid), 5 hub cards (kanıt: `src/config/hub-ui.ts`) |
-| `/hub/[hubSlug]` | `src/app/hub/[hubSlug]/page.tsx` | Page | `hubSlug` (hub) | Server Component | Direct DB (Drizzle: `getCategoryBySlug`, `getChildCategoriesByParentWcId`) | Public | Hub detail (Hero + Quick Category Rail), chip/pill rail, quick look sheet (kanıt: lines 25-32: Promise.all, lines 47-55: empty category filter) |
+| `/hub/[hubSlug]` | `src/app/hub/[hubSlug]/page.tsx` | Page | `hubSlug` (hub) | Server Component | Direct DB (Drizzle: `getCategoryBySlug`, `getChildCategoriesByParentWcId`) | Public | Hub detail (Hero + Quick Category Rail), chip/pill rail, quick look sheet. **Not:** Hub sayfaları kategori-index çalışır. Shape seçimi **DB'de kategori açmadan** filtre uygular (`product_variants.attributes.shape` facet olarak kullanılır, kategori değil). (kanıt: lines 25-32: Promise.all, lines 47-55: empty category filter) |
 | `/cart` | `src/app/cart/page.tsx` | Page | - | Server Component | Unknown | Public | Sepet sayfası |
 | `/checkout` | `src/app/checkout/page.tsx` | Page | - | Client Component | Server Action (`getAddressesAction`) | Conditional | Checkout sayfası, boş sepet kontrolü var, `getAddressesAction` auth gerektirir (kanıt: `src/actions/address.ts` lines 51-54), `router.push` kullanıyor |
 | `/order-success/[id]` | `src/app/order-success/[id]/page.tsx` | Page | `id` (order) | Server Component | Direct DB (`getOrderById`) | Conditional | Sipariş başarı sayfası, `auth()` kontrolü var, session yoksa `/login` redirect (kanıt: lines 14-18) |
@@ -144,9 +144,9 @@ Route groups (`(group)`) kullanılmıyor. Tüm route'lar doğrudan `src/app/` al
 - **Component:** `src/components/layout/DesktopNavigation.tsx`
 - **Type:** Client Component
 - **Links:**
-  - Kategoriler (mega menu dropdown): `/kadinlara-ozel`, `/erkeklere-ozel`, `/sex-oyuncaklari`, `/kozmetik`, `/geciktiriciler`, `/kayganlastirici-jeller`, `/anal-oyuncaklar`, `/realistik-mankenler` + alt kategoriler
-  - Düz linkler: `/kadinlara-ozel`, `/erkeklere-ozel`, `/geciktiriciler`
-- **Category Tree:** Hardcoded `categoryTree` array (lines 19-64)
+  - Kategoriler (mega menu dropdown): Hub kategorileri (Kadın, Erkek, Unisex) ve güneş gözlüğü alt kategorileri
+  - Düz linkler: Hub sayfaları (`/hub/kadin`, `/hub/erkek`, `/hub/unisex`)
+- **Category Tree:** Hub Map'ten besleniyor (hardcoded array kaldırıldı)
 
 **Evidence:** `src/components/layout/DesktopNavigation.tsx` (lines 19-64, 94, 118, 129, 146, 155, 164)
 
@@ -156,7 +156,7 @@ Route groups (`(group)`) kullanılmıyor. Tüm route'lar doğrudan `src/app/` al
 - **Link Groups:**
   - **Kurumsal:** `/about`, `/support`, `/gizlilik-ve-guvenlik`, `/mesafeli-satis-sozlesmesi`
   - **Müşteri Hizmetleri:** `/support`, `/odeme-ve-teslimat`, `/cayma-ve-iade-kosullari`, `/sss` (route yok, link var)
-  - **Kategoriler:** `/kadinlara-ozel`, `/erkeklere-ozel`, `/vibratorler`, `/kayganlastiricilar`, `/geciktiriciler`
+  - **Kategoriler:** Hub sayfaları (`/hub/kadin`, `/hub/erkek`, `/hub/unisex`)
 - **Bottom Bar:** `/gizlilik-ve-guvenlik`, `/mesafeli-satis-sozlesmesi`, `/`
 
 **Evidence:** `src/components/app/Footer.tsx` (lines 45-74, 322-341)
@@ -238,6 +238,11 @@ Route groups (`(group)`) kullanılmıyor. Tüm route'lar doğrudan `src/app/` al
 - **Kapıda ödeme:** Yok (desteklenmiyor)
 - **PayTR:** Var (online ödeme yöntemi)
 - **Kargo:** Yurtiçi Kargo var (teslimat seçeneği)
+
+**V1 Ürün Kapsamı:**
+- **Güneş Gözlüğü:** V1'de sadece güneş gözlüğü online satılır
+- **Lens/Numaralı Ürün:** Online satılmaz (V1 dışı, sadece mağaza/POS - V2)
+- **Kontakt Lens:** Online satılmaz (V1 dışı)
 
 **Evidence:** `src/app/page.tsx`, `src/app/[slug]/page.tsx`, `src/app/urun/[slug]/page.tsx`, `src/app/cart/page.tsx`, `src/app/checkout/page.tsx` (lines 100-111), `src/app/order-success/[id]/page.tsx`
 

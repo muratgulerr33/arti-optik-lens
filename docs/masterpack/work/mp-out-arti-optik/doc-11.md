@@ -35,6 +35,20 @@ Bu doküman şunları kapsar:
 
 ---
 
+## V1 Scope Lock (QA Test Context)
+
+**V1 HARD RULES:**
+- **V1 = Sadece Online Storefront + Sadece GÜNEŞ GÖZLÜĞÜ**
+- **Lens/Numaralı Ürün:** Online satılmaz (V1 dışı, sadece mağaza/POS - V2)
+- **POS:** Tamamen V2 (placeholder/feature-flag, V1 scope'tan çıkarılmış)
+
+**Test Kapsamı:**
+- V1'de sadece güneş gözlüğü ürünleri için test senaryoları yazılır
+- Lens/numaralı ürünler için online storefront'ta test senaryosu yazılmaz
+- POS test senaryoları V2 placeholder olarak işaretlenmiştir (SMK-09, SMK-10, SMK-11)
+
+---
+
 ## 2. Test Environments
 
 ### 2.1 Local Development
@@ -109,7 +123,7 @@ En az 8 kritik akış test edilmelidir. Her akış için:
 ### SMK-03E: Checkout → Order Success → Email Inbox (2 mail)
 - **Steps:**
   1. `/checkout` - Checkout sayfası
-  2. COD (Kapıda Ödeme) seçilir
+  2. PayTR kredi kartı ile ödeme yapılır
   3. Adres seçilir/eklenir
   4. "Siparişi Tamamla" butonuna tıklanır → `/order-success/[id]`
   5. Customer email inbox kontrol edilir
@@ -122,7 +136,7 @@ En az 8 kritik akış test edilmelidir. Her akış için:
   - `EMAIL_ENABLED=true` olmalı
   - SMTP credentials doğru olmalı
   - Test için gerçek email adresi hazır olmalı
-- **Evidence:** `docs/eposta-test-runbook.md` (section 5.1: COD testi), `docs/eposta-inbox-test-raporu-3a.md` (Order ID: `e1d68d9d-fff1-4fe9-b755-d355b48f48fe`, 2 email inbox'a ulaştı), `src/lib/email/send.ts` (sendOrderConfirmationEmail, sendAdminNotificationEmail), `src/actions/checkout.ts` (sendOrderEmails)
+- **Evidence:** `docs/eposta-test-runbook.md` (section 5.1: PayTR testi), `docs/eposta-inbox-test-raporu-3a.md` (Order ID: `e1d68d9d-fff1-4fe9-b755-d355b48f48fe`, 2 email inbox'a ulaştı), `src/lib/email/send.ts` (sendOrderConfirmationEmail, sendAdminNotificationEmail), `src/actions/checkout.ts` (sendOrderEmails)
 
 ### SMK-04: Login → Account → Wishlist
 - **Steps:**
@@ -453,7 +467,7 @@ Kritik ekranlar için zorunlu UI elementleri ve state kontrolleri.
 **Evidence:** `08.api-contracts-frontend.md` (section 4.3, 7.1), `src/app/api/products/route.ts`
 
 ### 10.3 Server Action Contracts
-- [ ] **Checkout action:** `createOrderAction` contract güncel (COD + CC/paytr branch) ve checkout UI uyumlu
+- [ ] **Checkout action:** `createOrderAction` contract güncel (sadece PayTR kredi kartı, V1'de COD yok) ve checkout UI uyumlu
 - [ ] **PayTR configured değilken:** CC disabled, createOrderAction error döner
 - [ ] **Callback configured değilken:** 404 dönüyor (OK değil)
 - [ ] **Favorites actions:** `toggleFavoriteAction`, `getMyFavoritesAction` contract bozulmamış

@@ -11,6 +11,8 @@ Bu doküman, ARTI OPTİK Next projesinin design system'ini, UI bileşenlerini, s
 **Next.js:** 16.1.1  
 **React:** 19.2.3
 
+**ÖNEMLİ:** Theme/token sistemi ve interaction kuralları için **tek kaynak** doküman: **[Design Rules v1.0](../../../design/design-rules-v1.md)**. Bu doküman (DOC-04) genel design system overview'ı içerir; detaylı theme/token/interaction kuralları Design Rules v1.0'da bulunur.
+
 ---
 
 ## 1. Design System Overview
@@ -23,9 +25,13 @@ Proje, shadcn/ui (New York style) tabanlı bir design system kullanıyor. Tailwi
 
 ## 2. Design Tokens
 
+**Not:** Detaylı token listesi, theme sistemi ve interaction kuralları için **[Design Rules v1.0](../../../design/design-rules-v1.md)** dokümanına bakın. Bu bölüm genel overview içerir.
+
 ### 2.1 Colors
 
 Renk sistemi CSS variables üzerinden yönetiliyor. OKLCH formatı kullanılıyor (lightness, chroma, hue). Primary renk: `#ff2357` (pembe/kırmızı ton). Dark ve light theme için ayrı değişkenler tanımlı.
+
+**Detaylar:** Tüm token değerleri, background mapping, color-scheme ve token yapısı için [Design Rules v1.0 - Section 2: Theme & Tokens](../../../design/design-rules-v1.md#2-theme--tokens-source-of-truth) bölümüne bakın.
 
 **Light Theme Variables:**
 - `--background`: `oklch(0.985 0 0)` (kırık beyaz)
@@ -468,6 +474,8 @@ Arama overlay. Full-screen, keyboard shortcut (Cmd/Ctrl+K), real-time search res
 
 ## 5. Theme System
 
+**Detaylar:** Theme sistemi, dark mode implementation, hydration-safe rendering ve toggle stabilizasyonu için **[Design Rules v1.0 - Section 3 & 4](../../../design/design-rules-v1.md#3-dark-mode-tailwind-v4--next-themes)** bölümüne bakın.
+
 **Library:** next-themes (`next-themes@0.4.6`)
 
 **Provider:** `src/components/theme/theme-provider.tsx`
@@ -567,6 +575,8 @@ Arama overlay. Full-screen, keyboard shortcut (Cmd/Ctrl+K), real-time search res
 **Touch Targets:**
 - Minimum size: `h-10` (40px) veya `min-h-11` (44px)
 - Spacing: Adequate gap between interactive elements
+
+**Detaylar:** 44px touch target, focus ring sistemi, motion tokens ve interaction kuralları için **[Design Rules v1.0 - Section 5: Interaction Rules](../../../design/design-rules-v1.md#5-interaction-rules-2026-native-app-feel)** bölümüne bakın.
 
 **Evidence:** `src/components/ui/dialog.tsx` (DialogTitle, DialogDescription), `src/components/app/mobile-bottom-nav.tsx` (aria-label, aria-current), `src/components/theme/theme-toggle.tsx` (aria-label), `package.json` (@radix-ui/react-visually-hidden), `src/components/ui/button.tsx` (focus-visible:ring)
 
@@ -714,19 +724,20 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 
 ## Evidence Index
 
-1. `package.json` - Dependencies (tailwindcss@4, class-variance-authority, framer-motion, sonner, next-themes, @radix-ui/*)
-2. `tailwind.config.ts` - Theme config (fontFamily extend, breakpoints default)
-3. `src/app/globals.css` - CSS variables (oklch colors, radius, theme variables)
-4. `src/app/layout.tsx` - Root layout (ThemeProvider, Toaster, font loading)
-5. `src/components/ui/button.tsx` - Button component (CVA variants, sizes, states)
-6. `src/components/ui/input.tsx` - Input component (base styles, focus ring)
-7. `src/components/ui/badge.tsx` - Badge component (variants including success/warning/info)
-8. `src/components/ui/dialog.tsx` - Dialog component (Radix UI, animations)
-9. `src/components/ui/drawer.tsx` - Drawer component (Vaul, mobile pattern)
-10. `src/components/ui/accordion.tsx` - Accordion component (Radix UI)
-11. `src/components/ui/avatar.tsx` - Avatar component (image + fallback)
-12. `src/components/ui/skeleton.tsx` - Skeleton component (loading state)
-13. `src/components/theme/theme-provider.tsx` - Theme provider (next-themes)
+1. **[Design Rules v1.0](../../../design/design-rules-v1.md)** - Theme/token sistemi ve interaction kuralları (tek kaynak doküman)
+2. `package.json` - Dependencies (tailwindcss@4, class-variance-authority, framer-motion, sonner, next-themes, @radix-ui/*)
+3. `tailwind.config.ts` - Theme config (fontFamily extend, breakpoints default)
+4. `src/app/globals.css` - CSS variables (oklch colors, radius, theme variables)
+5. `src/app/layout.tsx` - Root layout (ThemeProvider, Toaster, font loading)
+6. `src/components/ui/button.tsx` - Button component (CVA variants, sizes, states)
+7. `src/components/ui/input.tsx` - Input component (base styles, focus ring)
+8. `src/components/ui/badge.tsx` - Badge component (variants including success/warning/info)
+9. `src/components/ui/dialog.tsx` - Dialog component (Radix UI, animations)
+10. `src/components/ui/drawer.tsx` - Drawer component (Vaul, mobile pattern)
+11. `src/components/ui/accordion.tsx` - Accordion component (Radix UI)
+12. `src/components/ui/avatar.tsx` - Avatar component (image + fallback)
+13. `src/components/ui/skeleton.tsx` - Skeleton component (loading state)
+14. `src/components/theme/theme-provider.tsx` - Theme provider (next-themes)
 14. `src/components/theme/theme-toggle.tsx` - Theme toggle button
 15. `src/components/layout/header.tsx` - Mobile header
 16. `src/components/layout/DesktopHeader.tsx` - Desktop header

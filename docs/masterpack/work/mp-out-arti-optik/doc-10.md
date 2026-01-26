@@ -872,9 +872,11 @@ docker compose up -d
 DATABASE_URL=postgresql://postgres:postgres@localhost:5433/artioplik
 ```
 
-**Not:** Port `5433` kullanılır (Docker Compose port mapping)
+**Notlar:**
+- Port `5433` kullanılır (Docker Compose port mapping, 5432 port'u dolu olabilir)
+- DB adı (`artioplik`) ile repo klasör adı farklı olabilir; sorun değil (ama env'de tutarlı olmalı)
 
-**Evidence:** `docker-compose.yml` (ports: "5433:5432"), `.env.example`
+**Evidence:** `docker-compose.yml` (ports: "5433:5432", POSTGRES_DB: artioplik), `.env.example`
 
 ### 15.3 Setup Komutları (Sıralı)
 
@@ -910,13 +912,138 @@ DB kurulumunu doğrulamak için:
 # Container çalışıyor mu?
 docker ps | grep arti-optik-postgres
 
+# Drizzle schema var mı?
+docker exec -it arti-optik-postgres psql -U postgres -d artioplik -c "\dn"
+
 # Brands tablosunda kayıt var mı?
 docker exec -it arti-optik-postgres psql -U postgres -d artioplik -c "SELECT COUNT(*) FROM brands;"
 ```
 
-**Expected output:** Brands tablosunda 18 marka olmalı (V1 için)
+**Expected output:** 
+- Drizzle schema (`drizzle`) görünmeli
+- Brands tablosunda 18 marka olmalı (V1 için)
 
 **Evidence:** `tools/seed/seed-brands.mjs` (18 marka: Ray-Ban, Oakley, Prada, vb.)
+
+---
+
+## 16. SEO Metadata Standardı (V1 Runbook)
+
+### 16.1 Ürün Detail Metadata
+
+**V1 Zorunlu Kural:** Ürün detay sayfasında (`/urun/[slug]`) metadata title ve description içinde **"Stokta Var"** veya **"Stokta Yok"** bilgisi olmalıdır.
+
+**Pattern:**
+```typescript
+export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+  const product = await getProductBySlug(params.slug);
+  if (!product) notFound();
+  
+  const stockStatus = product.stockStatus === 'instock' ? 'Stokta Var' : 'Stokta Yok';
+  
+  return {
+    title: `${product.name} - ${stockStatus} | ARTI OPTİK`,
+    description: `${product.shortDescription || product.description} ${stockStatus}.`,
+  };
+}
+```
+
+**Evidence:** `src/app/urun/[slug]/page.tsx` (generateMetadata pattern)
+
+### 16.2 Canonical Base Domain
+
+**V1 Hard Rule:** Tüm canonical URL'ler `https://artioptiklens.com.tr` base'ini kullanır.
+
+**Pattern:**
+```typescript
+return {
+  metadataBase: new URL('https://artioptiklens.com.tr'),
+  alternates: {
+    canonical: `/urun/${product.slug}`,
+  },
+};
+```
+
+**Evidence:** `01.project-brief.md` (V1 Domain & SEO), `03.routes-and-navigation-map.md` (section 10.2: SEO Features)
+
+### 16.3 Next Metadata Type Uyumu
+
+**Kural:** `generateMetadata` fonksiyonu Next.js `Metadata` type'ını döndürmelidir. TypeScript tip hatası çıkmamalıdır.
+
+**Pattern:**
+```typescript
+import type { Metadata } from 'next';
+
+export async function generateMetadata(...): Promise<Metadata> {
+  // ...
+}
+```
+
+**Evidence:** `src/app/urun/[slug]/page.tsx` (generateMetadata type)
+
+### 16.4 Build-Safe DB Connection
+
+**Kural:** DB yoksa build kırılmamalı. `generateMetadata` içinde DB sorgusu yapılırken try/catch kullanılmalı veya build-safe yaklaşım uygulanmalıdır.
+
+**Pattern:**
+```typescript
+export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+  try {
+    const product = await getProductBySlug(params.slug);
+    if (!product) {
+      return {
+        title: 'Ürün Bulunamadı | ARTI OPTİK',
+        description: 'Aradığınız ürün bulunamadı.',
+      };
+    }
+    // ... metadata generation
+  } catch (error) {
+    // Build-safe fallback
+    return {
+      title: 'Ürün | ARTI OPTİK',
+      description: 'ARTI OPTİK - Güneş Gözlüğü',
+    };
+  }
+}
+```
+
+**Evidence:** `src/app/urun/[slug]/page.tsx` (generateMetadata implementation), `src/db/connection.ts` (DB connection pattern)
+
+---
+
+## 17. Seed Policy + Idempotency
+
+### 17.1 Seed Dosyaları Commit Politikası
+
+**Kural:** Gerçek seed dosyaları repo'ya commit edilmez (PII/size/izin riski).
+
+**Repo'da sadece sample tutulur:**
+- `tools/seed/input/v1-seed.sample.json` (sample format, gerçek veri yok)
+
+**Evidence:** `tools/seed/input/v1-seed.sample.json` (sample file), `.gitignore` (seed files ignore pattern)
+
+### 17.2 Seed Scripts Idempotency
+
+**Kural:** Seed scripts idempotent olmalıdır. Tekrar çalıştırınca duplicate hata vermemeli ve yeni kayıt eklemeyecek.
+
+**Örnek: `seed:brands`**
+- İlk çalıştırmada markalar eklenir
+- İkinci çalıştırmada duplicate hata vermez, mevcut kayıtlar korunur
+- `INSERT ... ON CONFLICT DO NOTHING` veya benzeri pattern kullanılır
+
+**Pattern:**
+```typescript
+// Idempotent insert pattern
+await db.insert(brands).values(brandData).onConflictDoNothing();
+```
+
+**Evidence:** `tools/seed/seed-brands.mjs` (idempotent pattern), `package.json` (scripts: seed:brands)
+
+### 17.3 Seed Import Notu
+
+**Not:** Seed import (ürün import) bu task'ta yapılmayacak; sadece policy + altyapı dokümana işlenecek. V1 seed dosyası dış projeden geliyor.
+
+**Evidence:** `tools/seed/input/v1-seed.sample.json` (sample format only)
 
 ---
 

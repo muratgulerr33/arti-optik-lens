@@ -99,6 +99,20 @@
     --border: oklch(0.923 0.003 48.717);      /* warm stroke */
     --input: oklch(0.923 0.003 48.717);       /* warm stroke */
     --ring: oklch(0.56 0.235 27.3);           /* primary ile uyumlu */
+    --ring-foreground: oklch(0.97 0.008 95);  /* text on ring */
+    --ring-offset: oklch(0.975 0.016 95);     /* background/surface */
+    --focus-outline: oklch(0.56 0.235 27.3 / 0.4); /* subtle outline for dark mode clarity */
+    --hover-overlay: oklch(0 0 0 / 0.05);     /* neutral overlay for hover */
+    --pressed-overlay: oklch(0 0 0 / 0.1);    /* stronger overlay for pressed/active */
+    --disabled-opacity: 0.6;                  /* disabled state opacity */
+
+    /* Motion tokens - native app feel */
+    --motion-duration-fast: 120ms;
+    --motion-duration: 180ms;
+    --motion-duration-slow: 240ms;
+    --motion-ease-out: cubic-bezier(0.16, 1, 0.3, 1);   /* native-ish */
+    --motion-ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+    --motion-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
 
     /* Critical: media/photo surface MUST stay pure white in both modes */
     --media-surface: oklch(1 0 0);
@@ -143,6 +157,20 @@
     --border: oklch(0.30 0.012 55);           /* warm stroke */
     --input: oklch(0.30 0.012 55);           /* warm stroke */
     --ring: oklch(0.637 0.237 25.331);        /* red-500 */
+    --ring-foreground: oklch(0.97 0.008 95);  /* text on ring */
+    --ring-offset: oklch(0.20 0.012 55);      /* background/surface */
+    --focus-outline: oklch(0.637 0.237 25.331 / 0.4); /* subtle outline for dark mode clarity */
+    --hover-overlay: oklch(1 1 1 / 0.05);     /* neutral overlay for hover */
+    --pressed-overlay: oklch(1 1 1 / 0.1);    /* stronger overlay for pressed/active */
+    --disabled-opacity: 0.6;                  /* disabled state opacity */
+
+    /* Motion tokens - native app feel (same as light) */
+    --motion-duration-fast: 120ms;
+    --motion-duration: 180ms;
+    --motion-duration-slow: 240ms;
+    --motion-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    --motion-ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+    --motion-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
 
     /* Critical: unchanged */
     --media-surface: oklch(1 0 0);
@@ -162,5 +190,24 @@
 
   body {
     @apply bg-background text-foreground;
+  }
+
+  /* Global focus-visible baseline - consistent ring system */
+  *:focus-visible {
+    outline: 1px solid var(--focus-outline);
+    outline-offset: 2px;
+    /* Ring will be applied per-component, this is the subtle outline */
+  }
+
+  /* Reduced motion support */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }

@@ -6,7 +6,7 @@
 
 Bu doküman, ARTI OPTİK Next projesinin production release öncesi ve sonrası yapılacakları "tek doğru checklist" olarak dokümante eder. Amaç: env/cache/route/API/UX kalite kapılarını release anında kaçırmayı engellemek.
 
-**As of repo scan:** 2025-01-27  
+**As of repo scan:** 2026-01-26  
 **Proje:** arti-optik-next  
 **Next.js:** 16.1.1  
 **React:** 19.2.3
@@ -104,7 +104,7 @@ Bu checklist şunları garanti eder:
 - [ ] SMK-02: Search → Product Detail
 - [ ] SMK-03: Cart → Checkout → Order Success (boş sepet kontrolü, loading state)
 - [ ] SMK-04: Login → Account → Wishlist (auth redirect çalışıyor)
-- [ ] SMK-03E (Opsiyonel, EMAIL_ENABLED=true ortamında): Checkout → Order Success → Email Inbox (2 mail) - COD ile 1 sipariş → 2 email geldi mi? (customer + admin)
+- [ ] SMK-03E (Opsiyonel, EMAIL_ENABLED=true ortamında): Checkout → Order Success → Email Inbox (2 mail) - PayTR kredi kartı ile 1 sipariş → 2 email geldi mi? (customer + admin)
 
 **Evidence:** `11.qa-test-matrix.md` (section 3: Smoke Tests, SMK-03E), `docs/eposta-test-runbook.md`, `docs/eposta-kilit-checklist.md` (section 4: Deploy Sonrası Smoke Test Adımları)
 
@@ -119,7 +119,7 @@ Bu checklist şunları garanti eder:
   - [ ] Test step var (varsa)
   - [ ] Cache steps var (node_modules, .next cache)
 
-**Evidence:** Unknown (CI config dosyası bulunamadı, as of repo scan: 2025-01-27)
+**Evidence:** Unknown (CI config dosyası bulunamadı, as of repo scan: 2026-01-26)
 
 ### 4.2 CI Pipeline
 - [ ] CI pipeline başarılı geçiyor
@@ -150,9 +150,9 @@ Bu checklist şunları garanti eder:
 
 ### 5.3 Expected env keys (if used)
 **Frontend Env (NEXT_PUBLIC_*):**
-- [ ] `NEXT_PUBLIC_*` env variable'ları: As of repo scan 2025-01-27, no `NEXT_PUBLIC_*` usage detected in codebase
+- [ ] `NEXT_PUBLIC_*` env variable'ları: As of repo scan 2026-01-26, no `NEXT_PUBLIC_*` usage detected in codebase
 
-**Evidence:** `grep -r "NEXT_PUBLIC_"` (as of repo scan 2025-01-27: 0 files found), `08.api-contracts-frontend.md` (section 2.2: "Frontend'de NEXT_PUBLIC_* env variable'ları kullanılmıyor")
+**Evidence:** `grep -r "NEXT_PUBLIC_"` (as of repo scan 2026-01-26: 0 files found), `08.api-contracts-frontend.md` (section 2.2: "Frontend'de NEXT_PUBLIC_* env variable'ları kullanılmıyor")
 
 **Assumption:** Frontend tüm API çağrılarını relative path ile yapıyor, external API base URL'i yok. Eğer ileride `NEXT_PUBLIC_*` kullanılacaksa bu bölüm güncellenmelidir.
 
@@ -168,10 +168,10 @@ Bu checklist şunları garanti eder:
 
 ### 6.1 Node & Package Manager
 - [ ] Node sürümü: Unknown (package.json'da engines field yok)
-- [ ] Package manager: npm (as of repo scan 2025-01-27: `package-lock.json` detected)
+- [ ] Package manager: npm (as of repo scan 2026-01-26: `package-lock.json` detected)
 - [ ] Lockfile commit edilmiş: `package-lock.json` (npm lockfile)
 
-**Evidence:** `package.json` (engines field yok), `package-lock.json` (as of repo scan 2025-01-27: npm lockfile detected)
+**Evidence:** `package.json` (engines field yok), `package-lock.json` (as of repo scan 2026-01-26: npm lockfile detected)
 
 ### 6.2 Build Output
 - [ ] Build output: `.next/` klasörü
@@ -326,7 +326,7 @@ Bu checklist şunları garanti eder:
   - [ ] Error tracking config doğru
   - [ ] Error boundaries var mı? Unknown (root error.tsx yok)
 
-**Evidence:** Unknown (error tracking tool yok, as of repo scan: 2025-01-27), `06.frontend-standards-2026.md` (section 7.1: Error Boundaries - root error.tsx yok)
+**Evidence:** Unknown (error tracking tool yok, as of repo scan: 2026-01-26), `06.frontend-standards-2026.md` (section 7.1: Error Boundaries - root error.tsx yok)
 
 ### 11.2 Logging
 - [ ] Structured logging var mı? Unknown (console.error kullanılıyor)
@@ -339,7 +339,7 @@ Bu checklist şunları garanti eder:
   - [ ] Event tracking config doğru
   - [ ] Critical events track ediliyor (add to cart, checkout, vb.)
 
-**Evidence:** Unknown (analytics tool yok, as of repo scan: 2025-01-27)
+**Evidence:** Unknown (analytics tool yok, as of repo scan: 2026-01-26)
 
 ### 11.4 Open Items
 - [ ] Error tracking: Open item (Sentry veya benzeri tool eklenmeli)
@@ -401,7 +401,7 @@ Bu checklist şunları garanti eder:
 - [ ] SMK-06: Empty Cart Flow (empty state, redirect)
 - [ ] SMK-07: Empty Search Results (empty state)
 - [ ] SMK-08: Protected Route Access (unauth redirect)
-- [ ] SMK-03E (Opsiyonel, EMAIL_ENABLED=true ortamında): Checkout → Order Success → Email Inbox (2 mail) - COD ile 1 sipariş → 2 email geldi mi? (customer + admin)
+- [ ] SMK-03E (Opsiyonel, EMAIL_ENABLED=true ortamında): Checkout → Order Success → Email Inbox (2 mail) - PayTR kredi kartı ile 1 sipariş → 2 email geldi mi? (customer + admin)
 
 **Evidence:** `11.qa-test-matrix.md` (section 3: Smoke Tests, SMK-03E), `docs/eposta-test-runbook.md`, `docs/eposta-kilit-checklist.md` (section 4: Deploy Sonrası Smoke Test Adımları)
 

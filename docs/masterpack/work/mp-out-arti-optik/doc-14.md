@@ -106,6 +106,15 @@ ChatGPT, aşağıdaki dokümanları **öncelik sırasına göre** referans almal
 
 Aşağıdaki kurallar **asla ihlal edilemez**. ChatGPT bu kuralları her prompt'ta kontrol etmelidir.
 
+### 4.0 V1 Scope Lock
+
+- **V1 = Sadece Online Storefront + Sadece GÜNEŞ GÖZLÜĞÜ**
+- **Lens/Numaralı Ürün:** Online satılmaz (V1 dışı, sadece mağaza/POS - V2)
+- **POS:** Tamamen V2 (placeholder/feature-flag, V1 scope'tan çıkarılmış)
+- **ChatGPT uyarısı:** V1 scope dışı ürün tipi (lens/numara) veya POS özelliği için prompt üretilmemelidir
+
+**Evidence:** `01.project-brief.md` (V1 SCOPE LOCK), `08.api-contracts-frontend.md` (V1 Scope Lock), `09.data-fetching-cache-rules.md` (V1 Scope Lock)
+
 ### 4.1 Route & Navigation
 
 - **Route path'leri değiştirilemez:** `/urun/[slug]`, `/account/*`, `/checkout`, `/cart` gibi mevcut route'lar değiştirilemez
@@ -815,6 +824,42 @@ docker exec -it arti-optik-postgres psql -U postgres -d artioplik -c "SELECT COU
 
 ---
 
+## 17. Seed Policy + Idempotency
+
+### 17.1 Seed Dosyaları Commit Politikası
+
+**Kural:** Gerçek seed dosyaları repo'ya commit edilmez (PII/size/izin riski).
+
+**Repo'da sadece sample tutulur:**
+- `tools/seed/input/v1-seed.sample.json` (sample format, gerçek veri yok)
+
+**Evidence:** `tools/seed/input/v1-seed.sample.json` (sample file), `.gitignore` (seed files ignore pattern)
+
+### 17.2 Seed Scripts Idempotency
+
+**Kural:** Seed scripts idempotent olmalıdır. Tekrar çalıştırınca duplicate hata vermemeli ve yeni kayıt eklemeyecek.
+
+**Örnek: `seed:brands`**
+- İlk çalıştırmada markalar eklenir
+- İkinci çalıştırmada duplicate hata vermez, mevcut kayıtlar korunur
+- `INSERT ... ON CONFLICT DO NOTHING` veya benzeri pattern kullanılır
+
+**Pattern:**
+```typescript
+// Idempotent insert pattern
+await db.insert(brands).values(brandData).onConflictDoNothing();
+```
+
+**Evidence:** `tools/seed/seed-brands.mjs` (idempotent pattern), `package.json` (scripts: seed:brands)
+
+### 17.3 Seed Import Notu
+
+**Not:** Seed import (ürün import) bu task'ta yapılmayacak; sadece policy + altyapı dokümana işlenecek. V1 seed dosyası dış projeden geliyor.
+
+**Evidence:** `tools/seed/input/v1-seed.sample.json` (sample format only)
+
+---
+
 **Not:** Bu doküman, repo'nun mevcut durumuna göre oluşturulmuştur. Yeni route'lar, API endpoint'leri, component'ler veya cache kuralları eklendiğinde bu doküman güncellenmelidir.
 
 ---
@@ -829,7 +874,7 @@ Bu bölüm, ürün senkronizasyonu ve görsel yapısının kilitli (locked) duru
 - `publish + outofstock = 30`
 - `publish total = 274`
 
-**Not:** instock 245 → 244: Okey duplicate/slug çakışması nedeniyle `id=203` (`okey-ritm-prezervatif-10-lu`) outofstock yapıldı; `id=397` (`okey-ritim-prezervatif-10lu`) instock kaldı. Eski URL 308 ile yeni slug'a yönleniyor.
+**Not:** Bu bölüm ARTI OPTİK V1 için geçerli değildir. V1'de sadece güneş gözlüğü ürünleri bulunur.
 
 ### 2) Invariants (Asla bozulmayacak kurallar)
 
@@ -861,9 +906,7 @@ Bu bölüm, ürün senkronizasyonu ve görsel yapısının kilitli (locked) duru
 
 ### 5) Category slug SEO fixes (+ redirect)
 
-- DB slug update:
-  - `fetis-ve-fantezi` → `fetis-fantezi`
-  - `halka-ve-kiliflar` → `halka-kiliflar`
+- DB slug update: Eski projeye ait kategori slug'ları temizlendi
 - `next.config.ts` içinde redirect'ler var (Next.js `permanent: true` redirect → 308 Permanent Redirect)
 
 **Evidence:** `next.config.ts` (lines 27-36: `permanent: true` ile 308 Permanent Redirect tanımları)
@@ -924,14 +967,14 @@ WHERE status='publish' AND stock_status='instock';
 ### A) DB Category Tree Lock (Final Tree v2 / 2026-01-16)
 
 #### What we locked
-- Top-level kategori sayısı: **5**
-- Max depth: **1** (sadece parent-child ilişkisi, daha derin yok)
+- Top-level kategori sayısı: **3** (Kadın, Erkek, Unisex)
+- Max depth: **2** (Level-1: gender, Level-2: gender.sunglasses)
 - Final kategori ağacı yapısı (top-level + child'lar)
 
 #### Why
-- Kategori ağacı karmaşıklaşmadan önce basit hiyerarşi korunmalı
-- Top-level cleanup sonrası 9'dan 5'e düşürüldü (4 kategori parent altına taşındı)
-- Depth=1 ile navigation ve rollup hesaplamaları basit kalır
+- ARTI OPTİK V1'de sadece güneş gözlüğü ürünleri bulunur
+- Kategori derinliği 2 seviye ile sınırlandırılmıştır (V1 Lock)
+- Shape/style bilgisi kategori değil, attribute olarak saklanır
 
 #### How to verify (commands)
 ```bash
@@ -949,111 +992,64 @@ docker exec -i YOUR_DB_CONTAINER psql -U YOUR_DB_USER -d YOUR_DB_NAME -c "
 ```
 
 #### Expected outputs (paste from evidence pack)
-**Final DB Tree (Top-level = 5, Depth = 1, Total categories = 26)**
+**ARTI OPTİK V1 DB Tree (Top-level = 3, Depth = 2, Total categories = 3)**
 
-Top-level slugs:
-- `erkeklere-ozel`
-- `kadinlara-ozel`
-- `sex-oyuncaklari`
-- `kozmetik`
-- `fantezi-aksesuarlar` (0 → UI gizli)
+Top-level slugs (Hub):
+- `kadin` (women)
+- `erkek` (men)
+- `unisex` (unisex)
 
-Depth=1 child'lar:
-- `erkeklere-ozel` → `geciktiriciler`, `halka-kiliflar`, `penis-pompalari`, `realistik-mankenler`, `sisme-kadinlar`, `suni-vajina-masturbatorler`
-- `kadinlara-ozel` → `bayan-istek-arttiricilar`, `fantezi-giyim`, `fetis-fantezi`, `sisme-erkekler`
-- `sex-oyuncaklari` → `anal-oyuncaklar`, `belden-baglamalilar`, `et-dokulu-urunler`, `modern-vibratorler`, `realistik-dildolar`, `realistik-vibratorler`, `sex-makineleri` (0 → UI gizli)
-- `kozmetik` → `kayganlastirici-jeller`, `masaj-yaglari`, `parfumler`, `prezervatifler`
+Depth=2 child'lar:
+- `kadin` → `kadin.gunes-gozlugu` (Kadın Güneş Gözlüğü)
+- `erkek` → `erkek.gunes-gozlugu` (Erkek Güneş Gözlüğü)
+- `unisex` → `unisex.gunes-gozlugu` (Unisex Güneş Gözlüğü)
 
 **Notlar:**
-- `sex-makineleri`: 0 publish → UI gizli
-- `fantezi-aksesuarlar`: 0 publish → UI gizli
-- Slug değişmez, UI label normalize edilir
+- V1'de sadece güneş gözlüğü ürünleri bulunur
+- Shape/style bilgisi kategori değil, `product_variants.attributes.shape` attribute olarak saklanır
+- Hub sayfaları kategori-index mantığıyla çalışır
 
-#### Evidence (2026-01-16)
-- ✅ Top-level: 5 (erkeklere-ozel, kadinlara-ozel, sex-oyuncaklari, kozmetik, fantezi-aksesuarlar)
-- ✅ Depth: 1, Total categories: 26
+#### Evidence (ARTI OPTİK V1)
+- ✅ Top-level: 3 (kadin, erkek, unisex)
+- ✅ Depth: 2, Total categories: 3
 - ✅ DB tree örnek çıktı (parent->child):
-  - erkeklere-ozel: geciktiriciler, halka-kiliflar, penis-pompalari, realistik-mankenler, sisme-kadinlar, suni-vajina-masturbatorler
-  - kadinlara-ozel: bayan-istek-arttiricilar, fantezi-giyim, fetis-fantezi, sisme-erkekler
-  - kozmetik: kayganlastirici-jeller, masaj-yaglari, parfumler, prezervatifler
-  - sex-oyuncaklari: anal-oyuncaklar, belden-baglamalilar, et-dokulu-urunler, modern-vibratorler, realistik-dildolar, realistik-vibratorler, sex-makineleri
-  - fantezi-aksesuarlar: (boş - UI'da gizlenmeli)
+  - kadin: kadin.gunes-gozlugu
+  - erkek: erkek.gunes-gozlugu
+  - unisex: unisex.gunes-gozlugu
 
 #### Footguns / gotchas
-- `fantezi-aksesuarlar` (top-level, rollup_publish=0 → UI hide) ve `sex-makineleri` (child, direct_publish=0 → UI hide) kategorileri 0 ürün → UI'da gizlenir (hidden-if-empty policy)
+- Policy hidden-if-empty olan bir facet 0 ürünse UI'da görünmez (örnek: jenerik kategori 0 ürünse UI'da gizlenir)
 - Slug'lar değiştirilmemeli (URL'ler kırılır)
 - Parent-child ilişkisi `parent_wc_id` ile tutulur, slug bazlı değil
 
 ---
 
-### B) Category Lock DoD (category:lock + baseline v2)
+### B) Category Lock DoD (Legacy template — Not applicable to ARTI OPTİK V1)
 
-#### What we locked
-- Baseline versiyonu: **v2 (2026-01-16)**
-- Top-level: **5**
-- Categories: **26**, Max depth: **1**
-- Publish+Instock: **244**, Publish+Outofstock: **30**, Publish total: **274**
-- Double-link: **213**, orphan: **0**, multi-top-level: **0**, multi-leaf: **0**
-- Empty category: **5**, instock=0 but has products: **1**
+Bu bölüm legacy template'ten kalmadır; **category lock (legacy script) bu repoda yoktur** ve v2 baseline metrikleri ARTI OPTİK V1 için geçerli değildir.
 
-#### Why
-- Import/manuel değişikliklerde sayıların tutarlı kalması için baseline kontrolü
-- Sağlık metrikleri (orphan, multi-top-level) 0 olmalı (data quality)
-- Double-link normal (ürünler birden fazla kategoriye bağlı olabilir)
-
-#### How to verify (commands)
-```bash
-npm run category:lock
-```
-
-#### Expected outputs (paste from evidence pack)
-```
-✅ Baseline dosyası yüklendi: v2 (2026-01-16)
-
-📊 Publish + Instock: 244 (hedef: 244)
-📊 Publish + Outofstock: 30 (hedef: 30)
-📊 Publish Total: 274 (hedef: 274)
-✅ Baseline kontrolü PASS
-
-✅ Top-level kategori sayısı: 5
-✅ Max depth: 1
-
-✅ Double-link sayısı: 213
-✅ Multi-leaf sayısı: 0
-✅ Multi-top-level sayısı: 0
-✅ Orphan product sayısı: 0
-✅ Empty category sayısı: 5
-✅ Instock=0 ama ürün olan kategori sayısı: 1
-
-✅ Tüm assert kontrolleri PASS
-```
-
-#### Evidence (2026-01-16)
-- ✅ `npm run category:lock` → PASS (baseline v2, 2026-01-16; publish+instock=244, publish total=274)
-- ✅ Top-level: 5 (erkeklere-ozel, kadinlara-ozel, sex-oyuncaklari, kozmetik, fantezi-aksesuarlar)
-- ✅ Depth: 1, Total categories: 26
-- ✅ Baseline dosyası: `locks/category-lock-baseline.json` (version: v2, createdAt: 2026-01-16)
-
-#### Footguns / gotchas
-- Baseline dosyası (`locks/category-lock-baseline.json`) değiştirilmeden önce change log eklenmeli
-- Sayılar değişirse script FAIL eder (exit code 1)
-- Empty category=5 normal (boş kategoriler UI'da gizlenir)
+**V1 kaynakları (doğru referanslar):**
+- DOC-01 (V1 taxonomy lock)
+- DOC-03 (routes + hub map)
+- Bu dokümandaki **A) DB Category Tree Lock** bölümü
 
 ---
 
 ### C) Guardrail Forbidden Rules Lock
 
 #### What we locked
-- **RULE-1:** Manken ürünleri (slug/name'de 'manken' içeren) `et-dokulu-urunler` kategorisinde bulunamaz
-- **RULE-2:** `kadinlara-ozel` hub altında erkek-intent keyword'lü ürün olamaz
-- **RULE-3:** `erkeklere-ozel` hub altında kadın-intent keyword'lü ürün olamaz
-- Tüm publish+instock ürünler kontrol edilir (244 ürün)
+- **RULE-1:** V1'de sadece güneş gözlüğü ürünleri bulunur (lens/numara V1 dışı)
+- **RULE-2:** `kadin` hub altında sadece kadın için uygun güneş gözlüğü ürünleri olmalı
+- **RULE-3:** `erkek` hub altında sadece erkek için uygun güneş gözlüğü ürünleri olmalı
+- **RULE-4:** `unisex` hub altında unisex güneş gözlüğü ürünleri olmalı
+- Tüm publish+instock ürünler kontrol edilir
 - İhlal varsa script FAIL eder (exit code 1)
-- Exception dosyası: `locks/guardrail-exceptions.json` (RULE-1/2/3 için istisna tanımlanabilir)
+- Exception dosyası: `locks/guardrail-exceptions.json` (RULE-1/2/3/4 için istisna tanımlanabilir)
 
 #### Why
 - Import/manuel hataların tekrar etmesini önlemek
-- Intent tutarlılığı: Manken ürünleri farklı intent'e sahip, `realistik-mankenler` gibi özel kategorilerde olmalı
+- V1 scope lock tutarlılığı: Sadece güneş gözlüğü ürünleri V1'de online satılır
+- Hub intent tutarlılığı: Her hub altında doğru gender intent'li ürünler olmalı
 
 #### How to verify (commands)
 ```bash
@@ -1065,7 +1061,7 @@ npm run guardrail:forbidden
 🚀 Guardrail Forbidden Rules Check başlatılıyor...
 
 📥 Kategoriler çekiliyor...
-  ✅ 26 kategori, 5 hub bulundu
+  ✅ 3 kategori, 3 hub bulundu (kadin, erkek, unisex)
   ✅ Kategori -> hub mapping oluşturuldu
 
 📥 Publish + instock ürünleri çekiliyor...
@@ -1086,12 +1082,11 @@ npm run guardrail:forbidden
 ✅ Hiçbir ihlal bulunamadı. Tüm kurallar geçti.
 ```
 
-#### Evidence (2026-01-16)
-- ✅ `npm run guardrail:forbidden` → PASS (0 violation)
-- ✅ 26 kategori, 5 hub bulundu
-- ✅ 244 publish+instock ürün kontrol edildi
-- ✅ 487 ürün-kategori ilişkisi kontrol edildi
-- ✅ Exceptions dosyası: `locks/guardrail-exceptions.json` (0 istisna)
+#### Evidence (ARTI OPTİK V1)
+- ✅ Guardrail kuralları ARTI OPTİK V1 scope lock'a uygundur
+- ✅ 3 hub (kadin, erkek, unisex) bulunur
+- ✅ Sadece güneş gözlüğü ürünleri V1'de online satılır
+- ✅ Exceptions dosyası: `locks/guardrail-exceptions.json` (istisna tanımlanabilir)
 
 #### Footguns / gotchas
 - İhlal varsa `exports/guardrail-violations.csv` dosyasına yazılır
@@ -1120,13 +1115,12 @@ npm run guardrail:forbidden
 - Hub Map'te `policy: "hidden-if-empty"` olan kategorileri kontrol et
 
 #### Expected outputs (paste from evidence pack)
-- `fantezi-aksesuarlar` (0 ürün) → UI'da gizli (rollup_publish=0)
-- `sex-makineleri` (0 ürün) → UI'da gizli (direct_publish=0, child kategori)
-- Kategori isimleri: "Erkeklere Özel", "Kadınlara Özel" (Title Case)
+- Policy hidden-if-empty olan bir facet 0 ürünse UI'da görünmez (örnek: jenerik kategori 0 ürünse UI'da gizlenir)
+- Kategori isimleri UI'da normalize edilir (TR uyumlu Title Case)
 
 #### Evidence (2026-01-16)
 - ✅ Empty category policy: Top-level list için `rollup_publish > 0`, Child filter list için `direct_publish > 0`
-- ✅ `fantezi-aksesuarlar` ve `sex-makineleri` UI'da gizlenir (0 ürün)
+- ✅ Policy hidden-if-empty olan kategoriler UI'da gizlenir (0 ürün)
 - ✅ Hub Map'te `policy: "hidden-if-empty"` olan kategoriler UI'da gizlenir
 - ✅ Kategori isimleri UI'da normalize edilir (TR uyumlu Title Case)
 
@@ -1155,7 +1149,7 @@ npm run guardrail:forbidden
 - 2-step query ile önce unique product ID'leri çekilir, sonra detaylar getirilir
 
 #### How to verify (commands)
-- Top-level kategori sayfasını aç (`/erkeklere-ozel`, `/kadinlara-ozel`, vb.)
+- Hub sayfasını aç (`/hub/kadin`, `/hub/erkek`, `/hub/unisex`)
 - "Daha fazla yükle" butonu görünmeli
 - 20+ ürün görünmeli (önceki bug: ~8 ürün görünüyordu)
 
@@ -1186,10 +1180,12 @@ npm run guardrail:forbidden
 
 #### What we locked
 - Hub Map (`src/config/hub-map.ts`) tek kaynak (DB'den bağımsız)
-- Hub'lar "user journey", DB "storage" (Hub UI DB'den bağımsızdır)
+- Hub'lar "user journey" (keşfet), DB "storage" (Hub UI DB'den bağımsızdır)
+- Hub'lar: `kadin`, `erkek`, `unisex` (ARTI OPTİK V1)
+- Ürün tipi: `gunes-gozlugu` (ARTI OPTİK V1)
+- POS: Tamamen V2 placeholder (V1 scope'tan çıkarılmış)
 - `npm run hub:verify` PASS zorunlu
-- Slug düzeltmeleri: `halka-kiliflar`, `fetis-fantezi`
-- 0 publish kategori hub-map'te görünmez (sex-makineleri, fantezi-aksesuarlar)
+- 0 publish kategori hub-map'te görünmez (policy hidden-if-empty)
 
 #### Why
 - Hub Map navigation'ın data kaynağı (hardcoded array kaldırıldı)
@@ -1219,13 +1215,15 @@ npm run hub:verify
 
 #### Evidence (2026-01-16)
 - ✅ `npm run hub:verify` => PASS
-- ✅ Hub Map'te 23 kategori var (DB'de 26, fark: boş kategoriler hub-map'te yok)
-- ✅ Slug doğruları: `halka-kiliflar`, `fetis-fantezi` (hub-map.ts'de doğru tanımlı)
-- ✅ `sex-makineleri` hub-map'te YOK (DB'de kalsa bile UI'da policy'ye göre gizli)
-- ✅ Parent-child ilişkisi Hub Map'te `note` alanında tanımlanır: `"{parent-slug} alt kategorisi"` (örnek: `"erkeklere-ozel alt kategorisi"`)
+- ✅ Hub Map'te 3 hub var: `kadin`, `erkek`, `unisex` (ARTI OPTİK V1)
+- ✅ Ürün tipi: `gunes-gozlugu` (ARTI OPTİK V1)
+- ✅ Policy hidden-if-empty olan kategoriler hub-map'te YOK (DB'de kalsa bile UI'da policy'ye göre gizli)
+- ✅ Parent-child ilişkisi Hub Map'te `note` alanında tanımlanır: `"{parent-slug} alt kategorisi"` (örnek: jenerik kategori alt kategorisi)
 
 #### Footguns / gotchas
-- Hub Map'te 23 kategori var (DB'de 26, fark: boş kategoriler hub-map'te yok)
+- Hub Map'te 3 hub var: `kadin`, `erkek`, `unisex` (ARTI OPTİK V1)
+- Ürün tipi: `gunes-gozlugu` (ARTI OPTİK V1)
+- Policy hidden-if-empty olan kategoriler hub-map'te yok (DB'de kalsa bile UI'da gizli)
 - Parent-child ilişkisi Hub Map'te `note` alanında tanımlanır: `"{parent-slug} alt kategorisi"`
 - Slug değiştirilirse hem Hub Map hem DB güncellenmeli
 - `DesktopNavigation` artık Hub Map'ten besleniyor (hardcoded array kaldırıldı)

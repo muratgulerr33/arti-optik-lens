@@ -4,7 +4,7 @@
 ---
 şimdi # 13. Security and Dependencies
 
-**As of repo scan: 2025-01-27**
+**As of repo scan: 2026-01-26**
 
 ## 1. Purpose
 
@@ -66,7 +66,7 @@ Environment dosyaları repo'da görünmüyor (muhtemelen `.gitignore`'da). Bekle
 - `.env.local` (local development)
 - `.env.production` (production, VPS'te olmalı)
 
-**Evidence:** `.env*` dosyaları bulunamadı (as of repo scan: 2025-01-27)
+**Evidence:** `.env*` dosyaları bulunamadı (as of repo scan: 2026-01-26)
 
 ### Environment Keys in Use
 
@@ -74,9 +74,9 @@ Kodda kullanılan environment key'leri:
 
 - `AUTH_SECRET` - NextAuth secret (required)
 - `DATABASE_URL` - PostgreSQL connection string
-- `WOO_BASE_URL` - External Catalog Import (V2/Unknown) API base URL (import script)
-- `WOO_CONSUMER_KEY` - External Catalog Import (V2/Unknown) API consumer key
-- `WOO_CONSUMER_SECRET` - External Catalog Import (V2/Unknown) API consumer secret
+- `WOO_BASE_URL` - Unknown / TODO: verify in repo (External Catalog Import script not found in repo)
+- `WOO_CONSUMER_KEY` - Unknown / TODO: verify in repo (External Catalog Import script not found in repo)
+- `WOO_CONSUMER_SECRET` - Unknown / TODO: verify in repo (External Catalog Import script not found in repo)
 - `WOO_IMPORT_MODE` - Import mode (`full` | `sample`)
 - `WOO_IMPORT_LIMIT` - Sample mode limit
 - `WOO_AUTH_MODE` - Auth mode (`basic` | `query`)
@@ -94,7 +94,7 @@ Kodda kullanılan environment key'leri:
 - `AUTH_URL` - Base URL (email link'leri için, fallback: `NEXT_PUBLIC_BASE_URL` veya `"https://arti-optik.com"`)
 - `NEXT_PUBLIC_BASE_URL` - Public base URL (fallback, email link'leri için)
 
-**Evidence:** `src/auth.ts` (AUTH_SECRET), `src/db/connection.ts` (DATABASE_URL), `scripts/woo-import.ts` (WOO_* keys), `next.config.ts` (TZ), `src/app/api/products/route.ts` (NODE_ENV), `src/lib/email/transport.ts` (SMTP_* keys), `src/lib/email/send.ts` (EMAIL_ENABLED, SMTP_FROM, ADMIN_NOTIFY_TO), `src/actions/checkout.ts` (AUTH_URL, NEXT_PUBLIC_BASE_URL)
+**Evidence:** `src/auth.ts` (AUTH_SECRET), `src/db/connection.ts` (DATABASE_URL), `next.config.ts` (TZ), `src/app/api/products/route.ts` (NODE_ENV), `src/lib/email/transport.ts` (SMTP_* keys), `src/lib/email/send.ts` (EMAIL_ENABLED, SMTP_FROM, ADMIN_NOTIFY_TO), `src/actions/checkout.ts` (AUTH_URL, NEXT_PUBLIC_BASE_URL)
 
 ### Rules
 
@@ -163,7 +163,7 @@ NextAuth v5 default cookie flags kullanılıyor. Explicit configuration görülm
 
 ### CSRF Protection
 
-**Unknown (as of repo scan: 2025-01-27)**
+**Unknown (as of repo scan: 2026-01-26)**
 
 NextAuth v5 default olarak CSRF koruması sağlar, ancak explicit CSRF token check veya middleware'de CSRF validation görülmedi.
 
@@ -226,7 +226,7 @@ NextAuth v5 default olarak CSRF koruması sağlar, ancak explicit CSRF token che
 
 ### Rate Limiting
 
-**Not implemented (as of repo scan: 2025-01-27)**
+**Not implemented (as of repo scan: 2026-01-26)**
 
 API route'larında rate limiting yok. `/api/auth/signup` ve diğer public endpoint'ler rate limit koruması olmadan çalışıyor.
 
@@ -244,7 +244,7 @@ API route'larında rate limiting yok. `/api/auth/signup` ve diğer public endpoi
 
 ### Logging & PII Masking
 
-**Not implemented (as of repo scan: 2025-01-27)**
+**Not implemented (as of repo scan: 2026-01-26)**
 
 PII masking policy yok. `console.error` ve `console.log` içinde PII (email, address, phone) loglanabilir.
 
@@ -261,7 +261,7 @@ PII masking policy yok. `console.error` ve `console.log` içinde PII (email, add
 
 ### Security Headers Configuration
 
-**Not implemented (as of repo scan: 2025-01-27)**
+**Not implemented (as of repo scan: 2026-01-26)**
 
 `next.config.ts` veya `middleware.ts` içinde security headers set edilmiyor. Next.js default headers kullanılıyor.
 
@@ -269,7 +269,7 @@ PII masking policy yok. `console.error` ve `console.log` içinde PII (email, add
 
 ### Content Security Policy (CSP)
 
-**Not implemented (as of repo scan: 2025-01-27)**
+**Not implemented (as of repo scan: 2026-01-26)**
 
 CSP header'ı set edilmiyor.
 
@@ -312,7 +312,7 @@ upgrade-insecure-requests;
 
 ### Upload Implementation
 
-**Not implemented (as of repo scan: 2025-01-27)**
+**Not implemented (as of repo scan: 2026-01-26)**
 
 File upload component veya route handler bulunamadı. `input type="file"` kullanımı yok.
 
@@ -361,7 +361,7 @@ N/A (upload yok)
 
 ### Security Audit Tools
 
-**Not implemented (as of repo scan: 2025-01-27)**
+**Not implemented (as of repo scan: 2026-01-26)**
 
 `package.json` scripts'te `npm audit` veya başka security audit tool yok. GitHub Dependabot config yok.
 
@@ -419,7 +419,7 @@ PII sayılan alanlar:
 
 ### Analytics & PII
 
-**Unknown (as of repo scan: 2025-01-27)**
+**Unknown (as of repo scan: 2026-01-26)**
 
 Analytics tool (Google Analytics, Plausible, PostHog) bulunamadı. Analytics event'lerde PII yasağı policy olarak tanımlanmalı.
 
@@ -466,7 +466,7 @@ Analytics tool (Google Analytics, Plausible, PostHog) bulunamadı. Analytics eve
 
 ## 13. Open Gaps
 
-Aşağıdaki security eksiklikleri repo taramasında bulunamadı (as of repo scan: 2025-01-27):
+Aşağıdaki security eksiklikleri repo taramasında bulunamadı (as of repo scan: 2026-01-26):
 
 1. **Rate Limiting**: API route'larında rate limiting yok (`/api/auth/signup`, `/api/search` vb.)
 2. **CSP (Content Security Policy)**: CSP header'ı set edilmiyor. CSP must be validated against actual third-party integrations (analytics, payments, CDN).
@@ -499,7 +499,7 @@ Aşağıdaki security eksiklikleri repo taramasında bulunamadı (as of repo sca
 14. `src/components/account/address-form.tsx` - React Hook Form + Zod resolver
 15. `next.config.ts` - No security headers config, only images config
 16. `src/db/connection.ts` - DATABASE_URL env key usage (server-only)
-17. `scripts/woo-import.ts` - WOO_* env keys usage
+17. External Catalog Import script - Unknown / TODO: verify in repo (scripts/woo-import.ts not found in repo)
 18. `eslint.config.mjs` - ESLint config (no security plugin)
 19. `src/proxy.ts` - Empty proxy, no middleware security
 20. `src/actions/favorites.ts` - Console logging with user data (PII risk)

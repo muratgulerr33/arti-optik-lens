@@ -7,12 +7,22 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
-import { Moon, Sun, Palette, Type, MousePointerClick, FileText, Package } from "lucide-react"
+import { Moon, Sun, Palette, Type, MousePointerClick, FileText, Package, Zap, CheckCircle2, AlertCircle } from "lucide-react"
 
 export default function DesignPage() {
   const { resolvedTheme, setTheme } = useTheme()
   const [tokenValues, setTokenValues] = useState<Record<string, string>>({})
   const [mounted, setMounted] = useState(false)
+  const [toggleLocked, setToggleLocked] = useState(false)
+  const [a11yCheck, setA11yCheck] = useState<{
+    buttonHeights: Record<string, number>
+    inputHeight: number
+    hasFocusVisible: boolean
+  }>({
+    buttonHeights: {},
+    inputHeight: 0,
+    hasFocusVisible: false,
+  })
   
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -29,12 +39,6 @@ export default function DesignPage() {
   useEffect(() => {
     if (!mounted) return
     
-    // Runtime check: Count .dark elements
-    const darkElements = document.querySelectorAll('.dark')
-    const isCurrentlyDark = resolvedTheme === "dark"
-    console.log(`[Design System Check] Found ${darkElements.length} .dark element(s)`)
-    console.log(`[Design System Check] Dark mode class on:`, isCurrentlyDark ? 'document.documentElement' : 'none')
-    
     // Read token values from computed styles
     const tokens: Record<string, string> = {
       primary: readTokenValue('--primary'),
@@ -48,37 +52,75 @@ export default function DesignPage() {
     setTimeout(() => {
       setTokenValues(tokens)
     }, 0)
-    
-    // Log token values for verification
-    const bgElement = document.querySelector('.bg-background') ?? document.body
-    const computedBgColor = getComputedStyle(bgElement).backgroundColor
-    
-    console.log('[Design System Check] Token values:', {
-      '--primary': tokens.primary,
-      '--background': tokens.background,
-      '--color-background': tokens.colorBackground,
-      '--card': tokens.card,
-      'computed backgroundColor': computedBgColor,
-    })
-    
-    // Check for mismatch
-    if (tokens.background !== tokens.colorBackground) {
-      console.warn('[Design System Check] MISMATCH: --background and --color-background differ!', {
-        '--background': tokens.background,
-        '--color-background': tokens.colorBackground,
+  }, [mounted, resolvedTheme])
+
+  // A11y/Interaction Check
+  useEffect(() => {
+    if (!mounted) return
+
+    const checkA11y = () => {
+      // Check button heights
+      const buttonHeights: Record<string, number> = {}
+      const buttonSizes = ['default', 'sm', 'xs', 'icon']
+      buttonSizes.forEach(size => {
+        const btn = document.querySelector(`[data-size="${size}"]`) as HTMLElement
+        if (btn) {
+          const height = btn.getBoundingClientRect().height
+          buttonHeights[size] = height
+        }
+      })
+
+      // Check input height
+      const input = document.querySelector('[data-slot="input"]') as HTMLElement
+      const inputHeight = input ? input.getBoundingClientRect().height : 0
+
+      // Check focus-visible styles (simple heuristic)
+      const testBtn = document.querySelector('[data-slot="button"]') as HTMLElement
+      let hasFocusVisible = false
+      if (testBtn) {
+        testBtn.focus()
+        const computed = window.getComputedStyle(testBtn)
+        const hasRing = computed.outlineWidth !== '0px' || computed.boxShadow !== 'none'
+        hasFocusVisible = hasRing
+        testBtn.blur()
+      }
+
+      setA11yCheck({
+        buttonHeights,
+        inputHeight,
+        hasFocusVisible,
       })
     }
-  }, [mounted, resolvedTheme])
+
+    // Run check after a short delay to ensure DOM is ready
+    const timeoutId = setTimeout(checkA11y, 500)
+    return () => clearTimeout(timeoutId)
+  }, [mounted])
 
   // Hydration mismatch'i kesin bitirmek için mounted olmadan render etme
   if (!mounted) {
     return <div className="min-h-screen bg-background" />
   }
 
-  const isDark = resolvedTheme === "dark"
+  const isDark = mounted && resolvedTheme === "dark"
 
   const toggleTheme = () => {
-    setTheme(isDark ? "light" : "dark")
+    // Spam click engeli
+    if (toggleLocked) return
+    
+    // DOM'dan gerçek state'i oku
+    const isCurrentlyDark = typeof document !== 'undefined' && document.documentElement.classList.contains("dark")
+    
+    // Lock'u aktif et
+    setToggleLocked(true)
+    
+    // Theme'i değiştir
+    setTheme(isCurrentlyDark ? "light" : "dark")
+    
+    // 250ms sonra lock'u kaldır
+    setTimeout(() => {
+      setToggleLocked(false)
+    }, 250)
   }
 
   return (
@@ -104,9 +146,11 @@ export default function DesignPage() {
             variant="outline"
             size="lg"
             className="gap-2 font-medium"
+            disabled={toggleLocked}
+            aria-disabled={toggleLocked}
           >
             {isDark ? <Sun className="size-5" /> : <Moon className="size-5" />}
-            {isDark ? "Light Mode" : "Dark Mode"}
+            {toggleLocked ? "Switching…" : (isDark ? "Light Mode" : "Dark Mode")}
           </Button>
         </header>
 
@@ -155,8 +199,8 @@ export default function DesignPage() {
             {/* Background */}
             <Card className="overflow-hidden border-2">
               <div className="h-32 bg-background flex items-center justify-center border-2 border-dashed">
-                <span className="text-foreground font-display text-xl font-bold">
-                  {isDark ? "Espresso" : "Pudra"}
+                <span className="text-foreground font-display text-xl font-bold" suppressHydrationWarning>
+                  {mounted ? (isDark ? "Espresso" : "Pudra") : "Pudra"}
                 </span>
               </div>
               <CardHeader>
@@ -499,7 +543,7 @@ export default function DesignPage() {
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Message</label>
                   <textarea
-                    className="flex min-h-[100px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:border-ring disabled:cursor-not-allowed disabled:opacity-50"
+                    className="flex min-h-[100px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs transition-[color,box-shadow,border-color] duration-motion ease-motion-out placeholder:text-muted-foreground hover:border-ring/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:border-ring disabled:cursor-not-allowed disabled:opacity-[var(--disabled-opacity)]"
                     placeholder="Mesajınızı buraya yazın..."
                   />
                 </div>
@@ -542,6 +586,249 @@ export default function DesignPage() {
               </CardContent>
             </Card>
           </div>
+        </section>
+
+        {/* SECTION 5: NATIVE APP INTERACTION SYSTEM */}
+        <section className="space-y-6">
+          <div className="flex items-center gap-3">
+            <Zap className="size-6 text-primary" />
+            <h2 className="font-display text-3xl font-semibold">Native App Interaction System</h2>
+            <span className="text-xs text-muted-foreground uppercase tracking-widest">Touch • Focus • Motion</span>
+          </div>
+
+          {/* Touch Target Matrix */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Touch Target Matrix</CardTitle>
+              <CardDescription>
+                All interactive controls meet the 44px minimum touch target requirement (WCAG 2.5.5)
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid md:grid-cols-3 gap-6">
+                <div className="space-y-3">
+                  <div className="relative inline-block">
+                    <div className="absolute -inset-2 border-2 border-dashed border-primary/30 rounded-md pointer-events-none">
+                      <div className="absolute top-0 left-0 w-11 h-11 border-2 border-primary/50 rounded-md" />
+                      <div className="absolute bottom-0 right-0 text-xs text-primary/70 font-mono">
+                        44px
+                      </div>
+                    </div>
+                    <Button variant="default" size="default" data-size="default">
+                      Default Button
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Height: {a11yCheck.buttonHeights.default ? `${Math.round(a11yCheck.buttonHeights.default)}px` : 'Checking...'}
+                    {a11yCheck.buttonHeights.default && a11yCheck.buttonHeights.default >= 44 ? (
+                      <span className="text-green-600 ml-2">✓</span>
+                    ) : (
+                      <span className="text-red-600 ml-2">✗</span>
+                    )}
+                  </p>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="relative inline-block">
+                    <div className="absolute -inset-2 border-2 border-dashed border-primary/30 rounded-md pointer-events-none">
+                      <div className="absolute top-0 left-0 w-11 h-11 border-2 border-primary/50 rounded-md" />
+                      <div className="absolute bottom-0 right-0 text-xs text-primary/70 font-mono">
+                        44px
+                      </div>
+                    </div>
+                    <Button variant="default" size="sm" data-size="sm">
+                      Small Button
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Height: {a11yCheck.buttonHeights.sm ? `${Math.round(a11yCheck.buttonHeights.sm)}px` : 'Checking...'}
+                    {a11yCheck.buttonHeights.sm && a11yCheck.buttonHeights.sm >= 44 ? (
+                      <span className="text-green-600 ml-2">✓</span>
+                    ) : (
+                      <span className="text-red-600 ml-2">✗</span>
+                    )}
+                  </p>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="relative inline-block">
+                    <div className="absolute -inset-2 border-2 border-dashed border-primary/30 rounded-md pointer-events-none">
+                      <div className="absolute top-0 left-0 w-11 h-11 border-2 border-primary/50 rounded-md" />
+                      <div className="absolute bottom-0 right-0 text-xs text-primary/70 font-mono">
+                        44px
+                      </div>
+                    </div>
+                    <Button variant="default" size="icon" data-size="icon">
+                      <MousePointerClick className="size-4" />
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Size: {a11yCheck.buttonHeights.icon ? `${Math.round(a11yCheck.buttonHeights.icon)}px` : 'Checking...'}
+                    {a11yCheck.buttonHeights.icon && a11yCheck.buttonHeights.icon >= 44 ? (
+                      <span className="text-green-600 ml-2">✓</span>
+                    ) : (
+                      <span className="text-red-600 ml-2">✗</span>
+                    )}
+                  </p>
+                </div>
+              </div>
+
+              <div className="pt-4 border-t">
+                <p className="text-xs text-muted-foreground">
+                  <strong>Note:</strong> Small and extra-small buttons use invisible hit area expansion via pseudo-elements to maintain visual size while meeting accessibility requirements.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Focus Ring Demo */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Focus Ring System</CardTitle>
+              <CardDescription>
+                Press <kbd className="px-1.5 py-0.5 bg-muted rounded text-xs font-mono">Tab</kbd> to navigate and see the focus ring. Only appears on keyboard navigation (focus-visible), not mouse clicks.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex flex-wrap gap-4">
+                <Button variant="default">Primary Button</Button>
+                <Button variant="outline">Outline Button</Button>
+                <Button variant="ghost">Ghost Button</Button>
+                <Input type="text" placeholder="Focus me with Tab" className="w-48" />
+                <Button variant="secondary">Secondary</Button>
+              </div>
+              <div className="pt-4 border-t space-y-2">
+                <p className="text-xs text-muted-foreground">
+                  <strong>Focus Ring Features:</strong>
+                </p>
+                <ul className="text-xs text-muted-foreground space-y-1 list-disc list-inside">
+                  <li>2px ring with 2px offset for clear separation</li>
+                  <li>Subtle 1px outline for dark mode clarity</li>
+                  <li>Only visible on keyboard navigation (focus-visible)</li>
+                  <li>Consistent across all interactive components</li>
+                </ul>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Motion Demo */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Motion & Micro-interactions</CardTitle>
+              <CardDescription>
+                Hover and press to experience native app feel with subtle animations
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="space-y-3">
+                  <p className="text-sm font-medium">Hover States</p>
+                  <div className="flex flex-wrap gap-3">
+                    <Button variant="default">Hover Me</Button>
+                    <Button variant="outline">Hover Me</Button>
+                    <Button variant="ghost">Hover Me</Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Shadow elevation increases on hover for tactile feedback
+                  </p>
+                </div>
+
+                <div className="space-y-3">
+                  <p className="text-sm font-medium">Pressed States</p>
+                  <div className="flex flex-wrap gap-3">
+                    <Button variant="default">Press Me</Button>
+                    <Button variant="outline">Press Me</Button>
+                    <Button variant="ghost">Press Me</Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Subtle scale-down (0.99) + shadow decrease for tactile response
+                  </p>
+                </div>
+              </div>
+
+              <div className="pt-4 border-t space-y-2">
+                <p className="text-xs text-muted-foreground">
+                  <strong>Motion Tokens:</strong>
+                </p>
+                <ul className="text-xs text-muted-foreground space-y-1 list-disc list-inside">
+                  <li>Fast: 120ms (pressed micro-interactions)</li>
+                  <li>Default: 180ms (standard transitions)</li>
+                  <li>Slow: 240ms (complex animations)</li>
+                  <li>Easing: Native app feel (cubic-bezier curves)</li>
+                  <li>Reduced motion: Automatically respects user preferences</li>
+                </ul>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* A11y/Interaction Check Panel */}
+          <Card className="border-primary/30 bg-primary/5">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                {a11yCheck.hasFocusVisible && 
+                 Object.values(a11yCheck.buttonHeights).every(h => h >= 44) &&
+                 a11yCheck.inputHeight >= 44 ? (
+                  <CheckCircle2 className="size-5 text-green-600" />
+                ) : (
+                  <AlertCircle className="size-5 text-yellow-600" />
+                )}
+                A11y/Interaction Check
+              </CardTitle>
+              <CardDescription>
+                Runtime verification of accessibility and interaction requirements
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <p className="text-sm font-medium">Touch Targets (≥44px)</p>
+                  <div className="space-y-1 text-xs">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Default Button:</span>
+                      <span className={a11yCheck.buttonHeights.default && a11yCheck.buttonHeights.default >= 44 ? 'text-green-600' : 'text-red-600'}>
+                        {a11yCheck.buttonHeights.default ? `${Math.round(a11yCheck.buttonHeights.default)}px` : 'Checking...'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Small Button:</span>
+                      <span className={a11yCheck.buttonHeights.sm && a11yCheck.buttonHeights.sm >= 44 ? 'text-green-600' : 'text-red-600'}>
+                        {a11yCheck.buttonHeights.sm ? `${Math.round(a11yCheck.buttonHeights.sm)}px` : 'Checking...'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Icon Button:</span>
+                      <span className={a11yCheck.buttonHeights.icon && a11yCheck.buttonHeights.icon >= 44 ? 'text-green-600' : 'text-red-600'}>
+                        {a11yCheck.buttonHeights.icon ? `${Math.round(a11yCheck.buttonHeights.icon)}px` : 'Checking...'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Input Field:</span>
+                      <span className={a11yCheck.inputHeight >= 44 ? 'text-green-600' : 'text-red-600'}>
+                        {a11yCheck.inputHeight ? `${Math.round(a11yCheck.inputHeight)}px` : 'Checking...'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <p className="text-sm font-medium">Focus System</p>
+                  <div className="space-y-1 text-xs">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Focus-visible styles:</span>
+                      <span className={a11yCheck.hasFocusVisible ? 'text-green-600' : 'text-red-600'}>
+                        {a11yCheck.hasFocusVisible ? '✓ Detected' : '✗ Not detected'}
+                      </span>
+                    </div>
+                    <div className="pt-2 border-t">
+                      <p className="text-xs text-muted-foreground">
+                        <strong>Keyboard Navigation:</strong> Press Tab to test focus rings. They should only appear on keyboard navigation, not mouse clicks.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </section>
 
         {/* SECTION 5: COMPONENTS IN CONTEXT */}
@@ -701,7 +988,7 @@ export default function DesignPage() {
                 <div className="space-y-2">
                   <p className="text-xs font-medium text-muted-foreground">Computed backgroundColor</p>
                   <p className="text-sm font-mono bg-background p-2 rounded border">
-                    {typeof window !== 'undefined' && mounted
+                    {mounted && typeof window !== 'undefined'
                       ? getComputedStyle(document.querySelector('.bg-background') ?? document.body).backgroundColor
                       : 'Loading...'}
                   </p>

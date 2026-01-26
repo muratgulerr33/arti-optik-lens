@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useTheme } from "next-themes"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -9,10 +10,11 @@ import { Badge } from "@/components/ui/badge"
 import { Moon, Sun, Palette, Type, MousePointerClick, FileText, Package } from "lucide-react"
 
 export default function DesignPage() {
-  // Initialize with false, will be set correctly after mount
-  const [isDark, setIsDark] = useState(false)
-  const [mounted, setMounted] = useState(false)
+  const { resolvedTheme, setTheme } = useTheme()
   const [tokenValues, setTokenValues] = useState<Record<string, string>>({})
+  const [mounted, setMounted] = useState(false)
+  
+  const isDark = resolvedTheme === "dark"
 
   const readTokenValue = (tokenName: string): string => {
     if (typeof window === 'undefined') return ''
@@ -22,18 +24,18 @@ export default function DesignPage() {
   }
 
   useEffect(() => {
-    // Check initial theme after mount
-    // This is necessary to read from DOM on client-side
-    // We need to set state here to sync with DOM, which is an external system
-    const html = document.documentElement
-    const darkMode = html.classList.contains("dark")
+    // Set mounted after hydration to avoid mismatch
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setIsDark(darkMode)
+    setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (!mounted) return
     
     // Runtime check: Count .dark elements
     const darkElements = document.querySelectorAll('.dark')
     console.log(`[Design System Check] Found ${darkElements.length} .dark element(s)`)
-    console.log(`[Design System Check] Dark mode class on:`, darkMode ? 'document.documentElement' : 'none')
+    console.log(`[Design System Check] Dark mode class on:`, isDark ? 'document.documentElement' : 'none')
     
     // Read token values from computed styles
     const tokens: Record<string, string> = {
@@ -43,7 +45,10 @@ export default function DesignPage() {
       destructive: readTokenValue('--destructive'),
       secondary: readTokenValue('--secondary'),
     }
-    setTokenValues(tokens)
+    // Use setTimeout to defer state update and avoid synchronous setState in effect
+    setTimeout(() => {
+      setTokenValues(tokens)
+    }, 0)
     
     // Log token values for verification
     console.log('[Design System Check] Token values:', {
@@ -51,30 +56,10 @@ export default function DesignPage() {
       '--background': tokens.background,
       '--card': tokens.card,
     })
-    
-    setMounted(true)
-  }, [isDark])
+  }, [mounted, isDark])
 
   const toggleTheme = () => {
-    const html = document.documentElement
-    if (html.classList.contains("dark")) {
-      html.classList.remove("dark")
-      setIsDark(false)
-    } else {
-      html.classList.add("dark")
-      setIsDark(true)
-    }
-    // Re-read token values after theme change
-    setTimeout(() => {
-      const tokens: Record<string, string> = {
-        primary: readTokenValue('--primary'),
-        background: readTokenValue('--background'),
-        card: readTokenValue('--card'),
-        destructive: readTokenValue('--destructive'),
-        secondary: readTokenValue('--secondary'),
-      }
-      setTokenValues(tokens)
-    }, 50)
+    setTheme(isDark ? "light" : "dark")
   }
 
   return (

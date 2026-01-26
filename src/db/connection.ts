@@ -23,14 +23,45 @@ function getDb() {
 }
 
 // Lazy getter - only initializes when accessed
+// This ensures DB connection is only attempted at runtime, not during build
 let dbInstance: ReturnType<typeof getDb> | null = null;
 
 type DbType = ReturnType<typeof getDb>;
 
 const handler: ProxyHandler<DbType> = {
   get(_target, prop: PropertyKey) {
+    // Only initialize DB when actually accessed (runtime)
+    // This prevents build-time connection attempts
     if (!dbInstance) {
-      dbInstance = getDb();
+      // Check DATABASE_URL before attempting connection
+      // If missing during build, return a proxy that throws on any method call
+      // This allows build to succeed while still providing runtime errors
+      if (!process.env.DATABASE_URL) {
+        // Return a proxy that throws on any property access
+        // This works for drizzle methods like .select(), .insert(), etc.
+        return new Proxy({} as Record<PropertyKey, unknown>, {
+          get() {
+            throw new Error('DATABASE_URL is missing. Database operations are not available.');
+          },
+          apply() {
+            throw new Error('DATABASE_URL is missing. Database operations are not available.');
+          },
+        });
+      }
+      try {
+        dbInstance = getDb();
+      } catch (error) {
+        // If connection fails, return a proxy that throws
+        const errorMessage = error instanceof Error ? error.message : 'Database connection failed';
+        return new Proxy({} as Record<PropertyKey, unknown>, {
+          get() {
+            throw new Error(errorMessage);
+          },
+          apply() {
+            throw new Error(errorMessage);
+          },
+        });
+      }
     }
     return dbInstance[prop as keyof DbType];
   },

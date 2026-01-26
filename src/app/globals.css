@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Tailwind v4 dark mode variant - class-based */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   /* --- 1. FONTLAR (Artı Optik v1.0 - Final Typography) --- */
   /* Display Font: DM Sans (Tech Luxury / Native App Feel) */
@@ -61,6 +64,7 @@
 /* --- DEĞİŞKENLER (ORGANIC UI / EYE COMFORT — WARM PAPER / WARM DARK) --- */
 @layer base {
   :root {
+    color-scheme: light;
     --radius: 0.65rem;
 
     /* Organic UI / Eye Comfort — Warm Paper */
@@ -105,7 +109,8 @@
     --chart-5: oklch(0.56 0.19 32);
   }
 
-  .dark {
+  :root.dark {
+    color-scheme: dark;
     /* Organic UI / Eye Comfort — Warm Dark (FB benzeri warm dark) */
     --background: oklch(0.20 0.012 55);       /* #1A1614–#1D1917 bandı */
     --foreground: oklch(0.923 0.003 48.717);  /* stone-200 (#e7e5e4) */

@@ -14,7 +14,10 @@ export default function DesignPage() {
   const [tokenValues, setTokenValues] = useState<Record<string, string>>({})
   const [mounted, setMounted] = useState(false)
   
-  const isDark = resolvedTheme === "dark"
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMounted(true)
+  }, [])
 
   const readTokenValue = (tokenName: string): string => {
     if (typeof window === 'undefined') return ''
@@ -24,23 +27,19 @@ export default function DesignPage() {
   }
 
   useEffect(() => {
-    // Set mounted after hydration to avoid mismatch
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setMounted(true)
-  }, [])
-
-  useEffect(() => {
     if (!mounted) return
     
     // Runtime check: Count .dark elements
     const darkElements = document.querySelectorAll('.dark')
+    const isCurrentlyDark = resolvedTheme === "dark"
     console.log(`[Design System Check] Found ${darkElements.length} .dark element(s)`)
-    console.log(`[Design System Check] Dark mode class on:`, isDark ? 'document.documentElement' : 'none')
+    console.log(`[Design System Check] Dark mode class on:`, isCurrentlyDark ? 'document.documentElement' : 'none')
     
     // Read token values from computed styles
     const tokens: Record<string, string> = {
       primary: readTokenValue('--primary'),
       background: readTokenValue('--background'),
+      colorBackground: readTokenValue('--color-background'),
       card: readTokenValue('--card'),
       destructive: readTokenValue('--destructive'),
       secondary: readTokenValue('--secondary'),
@@ -51,12 +50,32 @@ export default function DesignPage() {
     }, 0)
     
     // Log token values for verification
+    const bgElement = document.querySelector('.bg-background') ?? document.body
+    const computedBgColor = getComputedStyle(bgElement).backgroundColor
+    
     console.log('[Design System Check] Token values:', {
       '--primary': tokens.primary,
       '--background': tokens.background,
+      '--color-background': tokens.colorBackground,
       '--card': tokens.card,
+      'computed backgroundColor': computedBgColor,
     })
-  }, [mounted, isDark])
+    
+    // Check for mismatch
+    if (tokens.background !== tokens.colorBackground) {
+      console.warn('[Design System Check] MISMATCH: --background and --color-background differ!', {
+        '--background': tokens.background,
+        '--color-background': tokens.colorBackground,
+      })
+    }
+  }, [mounted, resolvedTheme])
+
+  // Hydration mismatch'i kesin bitirmek için mounted olmadan render etme
+  if (!mounted) {
+    return <div className="min-h-screen bg-background" />
+  }
+
+  const isDark = resolvedTheme === "dark"
 
   const toggleTheme = () => {
     setTheme(isDark ? "light" : "dark")
@@ -80,17 +99,15 @@ export default function DesignPage() {
               Ferrari Red + Espresso Dark palette. Native App interface feel.
             </p>
           </div>
-          {mounted && (
-            <Button
-              onClick={toggleTheme}
-              variant="outline"
-              size="lg"
-              className="gap-2 font-medium"
-            >
-              {isDark ? <Sun className="size-5" /> : <Moon className="size-5" />}
-              {isDark ? "Light Mode" : "Dark Mode"}
-            </Button>
-          )}
+          <Button
+            onClick={toggleTheme}
+            variant="outline"
+            size="lg"
+            className="gap-2 font-medium"
+          >
+            {isDark ? <Sun className="size-5" /> : <Moon className="size-5" />}
+            {isDark ? "Light Mode" : "Dark Mode"}
+          </Button>
         </header>
 
         {/* SECTION 1: COLOR PALETTE */}
@@ -658,11 +675,35 @@ export default function DesignPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid md:grid-cols-3 gap-4">
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <p className="text-xs font-medium text-muted-foreground">--background</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-xs font-medium text-muted-foreground">--background</p>
+                    {tokenValues.background !== tokenValues.colorBackground && (
+                      <Badge variant="destructive" className="text-xs">Mismatch</Badge>
+                    )}
+                  </div>
                   <p className="text-sm font-mono bg-background p-2 rounded border">
                     {tokenValues.background || 'Loading...'}
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <p className="text-xs font-medium text-muted-foreground">--color-background</p>
+                    {tokenValues.background !== tokenValues.colorBackground && (
+                      <Badge variant="destructive" className="text-xs">Mismatch</Badge>
+                    )}
+                  </div>
+                  <p className="text-sm font-mono bg-background p-2 rounded border">
+                    {tokenValues.colorBackground || 'Loading...'}
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <p className="text-xs font-medium text-muted-foreground">Computed backgroundColor</p>
+                  <p className="text-sm font-mono bg-background p-2 rounded border">
+                    {typeof window !== 'undefined' && mounted
+                      ? getComputedStyle(document.querySelector('.bg-background') ?? document.body).backgroundColor
+                      : 'Loading...'}
                   </p>
                 </div>
                 <div className="space-y-2">
@@ -678,11 +719,16 @@ export default function DesignPage() {
                   </p>
                 </div>
               </div>
-              <div className="mt-4 pt-4 border-t">
+              <div className="mt-4 pt-4 border-t space-y-2">
                 <p className="text-xs text-muted-foreground">
                   <strong>Dark Mode Check:</strong> {isDark ? 'Active' : 'Inactive'} • 
                   Class location: <code className="text-xs">document.documentElement</code>
                 </p>
+                {tokenValues.background && tokenValues.colorBackground && (
+                  <p className={`text-xs ${tokenValues.background !== tokenValues.colorBackground ? 'text-destructive font-medium' : 'text-muted-foreground'}`}>
+                    <strong>Token Sync:</strong> {tokenValues.background === tokenValues.colorBackground ? '✓ In sync' : '✗ Mismatch detected'}
+                  </p>
+                )}
               </div>
             </CardContent>
           </Card>

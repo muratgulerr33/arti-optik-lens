@@ -20,14 +20,14 @@
  *   - Price format: TL olarak saklanır (numeric precision: 10, scale: 2)
  */
 
-import { drizzle } from 'drizzle-orm/neon-serverless';
-import { neon } from '@neondatabase/serverless';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { Pool } from 'pg';
 import * as dotenv from 'dotenv';
 import * as fs from 'fs';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
 // eq and sql imports removed - not used
-import * as schema from '../../src/db/schema.js';
+import * as schemaModule from '../../src/db/schema';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -38,8 +38,13 @@ if (!process.env.DATABASE_URL) {
   throw new Error('DATABASE_URL is missing in .env.local');
 }
 
-const sqlClient = neon(process.env.DATABASE_URL);
-const db = drizzle(sqlClient, { schema });
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+});
+
+// Schema'yı düzgün import et (default export içinde)
+const schema = schemaModule.default || schemaModule;
+const db = drizzle(pool, { schema });
 
 // CLI args
 const args = process.argv.slice(2);
@@ -292,6 +297,8 @@ async function importSeed() {
   } catch (error) {
     console.error('❌ Import hatası:', error);
     process.exit(1);
+  } finally {
+    await pool.end();
   }
 }
 

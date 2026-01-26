@@ -52,8 +52,9 @@ Bu doküman, **ARTI OPTİK** projesinin (Storefront + Admin + POS) mimari kararl
 - **Drizzle ORM zorunlu** - Prisma veya başka ORM kullanılamaz (kanıt: `package.json` drizzle-orm@0.45.1, `README.md` line 185)
 - **Schema değişikliği migration ile** - `src/db/schema.ts` değişiklikleri `npm run db:generate` ve `npm run db:migrate` ile yapılmalı (kanıt: `package.json` scripts, `drizzle/` migration files)
 - **Connection singleton** - `src/db/connection.ts` export edilen `db` instance kullanılmalı, yeni connection pool oluşturulmamalı (kanıt: `src/db/connection.ts`)
+- **DB (local dev)** - Local development için Docker Compose ile Postgres container (`arti-optik-postgres`) kullanılır, port mapping: Host `5433` → Container `5432`. Setup: `docker compose up -d` → `npm run db:extensions` → `npm run db:migrate` → `npm run seed:brands` (kanıt: `docker-compose.yml`, `package.json` scripts)
 
-**Evidence:** `package.json`, `src/db/schema.ts`, `src/db/connection.ts`, `README.md`
+**Evidence:** `package.json`, `src/db/schema.ts`, `src/db/connection.ts`, `README.md`, `docker-compose.yml`
 
 ### 2.4 Authentication
 - **NextAuth.js v5 zorunlu** - Auth.js v5 API'si kullanılmalı, eski v4 pattern'leri kullanılamaz (kanıt: `package.json` next-auth@5.0.0-beta.25, `src/auth.ts`)

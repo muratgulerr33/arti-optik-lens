@@ -69,6 +69,7 @@
 
     /* Organic UI / Eye Comfort — Warm Paper */
     --background: oklch(0.975 0.016 95);      /* warm paper, #FAF7EB civarı */
+    --color-background: var(--background);
     --foreground: oklch(0.216 0.006 56.043);  /* stone-900 (#1c1917) */
 
     /* Surfaces */
@@ -113,6 +114,7 @@
     color-scheme: dark;
     /* Organic UI / Eye Comfort — Warm Dark (FB benzeri warm dark) */
     --background: oklch(0.20 0.012 55);       /* #1A1614–#1D1917 bandı */
+    --color-background: var(--background);
     --foreground: oklch(0.923 0.003 48.717);  /* stone-200 (#e7e5e4) */
 
     /* Dark surfaces - warm espresso */

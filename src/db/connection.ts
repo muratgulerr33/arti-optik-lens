@@ -1,5 +1,5 @@
-import { drizzle } from 'drizzle-orm/neon-serverless';
-import { neon } from '@neondatabase/serverless';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { Pool } from 'pg';
 import * as schema from './schema';
 
 // Lazy initialization function to avoid build-time DB connection
@@ -8,18 +8,17 @@ function getDb() {
     throw new Error('DATABASE_URL is missing in .env.local');
   }
 
-  // Normalize DATABASE_URL: postgres:// -> postgresql:// (Neon requirement)
+  // Normalize DATABASE_URL: postgres:// -> postgresql:// (pg driver requirement)
   const rawUrl = process.env.DATABASE_URL;
   const normalizedUrl = rawUrl.replace(/^postgres:\/\//, 'postgresql://');
 
-  // Neon serverless connection
-  const sql = neon(normalizedUrl);
+  // Node-postgres connection pool
+  const pool = new Pool({
+    connectionString: normalizedUrl,
+  });
 
   // Drizzle database instance
-  // Type mismatch: neon() returns NeonQueryFunction, but drizzle-orm/neon-serverless expects it
-  // This is a known type definition issue in drizzle-orm - runtime works correctly
-  // @ts-expect-error - Drizzle type definitions don't match neon-serverless return type
-  return drizzle(sql, { schema });
+  return drizzle(pool, { schema });
 }
 
 // Lazy getter - only initializes when accessed

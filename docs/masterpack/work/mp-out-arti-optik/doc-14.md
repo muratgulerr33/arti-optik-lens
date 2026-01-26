@@ -791,6 +791,30 @@ En önemli kanıt dosyaları ve referanslar:
 
 ---
 
+## 16. Local DB Setup Checklist
+
+### 16.1 Environment + DB Start
+
+**Quick Start Checklist:**
+
+1. **Environment:** `.env.local` dosyasında `DATABASE_URL=postgresql://postgres:postgres@localhost:5433/artioplik` tanımlı
+2. **Docker:** `docker compose up -d` ile Postgres container başlatıldı (port 5433)
+3. **Extensions:** `npm run db:extensions` çalıştırıldı (ltree enabled)
+4. **Generate:** `npm run db:generate` çalıştırıldı (migration dosyaları oluşturuldu)
+5. **Migrate:** `npm run db:migrate` çalıştırıldı (schema oluşturuldu)
+6. **Seed:** `npm run seed:brands` çalıştırıldı (18 marka eklendi)
+
+**Verification:**
+```bash
+docker exec -it arti-optik-postgres psql -U postgres -d artioplik -c "SELECT COUNT(*) FROM brands;"
+```
+
+**Expected:** 18 marka (Ray-Ban, Oakley, Prada, vb.)
+
+**Evidence:** `docker-compose.yml` (ports: "5433:5432"), `package.json` (scripts: db:extensions, db:generate, db:migrate, seed:brands), `tools/seed/seed-brands.mjs`
+
+---
+
 **Not:** Bu doküman, repo'nun mevcut durumuna göre oluşturulmuştur. Yeni route'lar, API endpoint'leri, component'ler veya cache kuralları eklendiğinde bu doküman güncellenmelidir.
 
 ---

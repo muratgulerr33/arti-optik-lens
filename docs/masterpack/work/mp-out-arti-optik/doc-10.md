@@ -850,5 +850,75 @@ En önemli referanslar:
 
 ---
 
+## 15. Local DB Setup
+
+### 15.1 Docker Compose ile Local Postgres
+
+Local development için Docker Compose ile Postgres container'ı ayağa kaldırılır:
+
+```bash
+docker compose up -d
+```
+
+**Not:** Container port mapping: Host `5433` → Container `5432` (5432 çakışmasın diye)
+
+**Evidence:** `docker-compose.yml` (ports: "5433:5432", container_name: arti-optik-postgres)
+
+### 15.2 Environment Configuration
+
+`.env.local` dosyasında `DATABASE_URL` tanımlanmalı:
+
+```env
+DATABASE_URL=postgresql://postgres:postgres@localhost:5433/artioplik
+```
+
+**Not:** Port `5433` kullanılır (Docker Compose port mapping)
+
+**Evidence:** `docker-compose.yml` (ports: "5433:5432"), `.env.example`
+
+### 15.3 Setup Komutları (Sıralı)
+
+Local DB kurulumu için sıralı komutlar:
+
+```bash
+# 1. Dependencies yükle
+npm install
+
+# 2. Docker Postgres container'ı başlat
+docker compose up -d
+
+# 3. PostgreSQL extensions'ları etkinleştir (ltree)
+npm run db:extensions
+
+# 4. Drizzle migration dosyalarını oluştur
+npm run db:generate
+
+# 5. Migration'ları uygula (schema oluştur)
+npm run db:migrate
+
+# 6. Marka seed'ini çalıştır
+npm run seed:brands
+```
+
+**Evidence:** `package.json` (scripts: db:extensions, db:generate, db:migrate, seed:brands), `docker-compose.yml`
+
+### 15.4 Verification
+
+DB kurulumunu doğrulamak için:
+
+```bash
+# Container çalışıyor mu?
+docker ps | grep arti-optik-postgres
+
+# Brands tablosunda kayıt var mı?
+docker exec -it arti-optik-postgres psql -U postgres -d artioplik -c "SELECT COUNT(*) FROM brands;"
+```
+
+**Expected output:** Brands tablosunda 18 marka olmalı (V1 için)
+
+**Evidence:** `tools/seed/seed-brands.mjs` (18 marka: Ray-Ban, Oakley, Prada, vb.)
+
+---
+
 **Not:** Bu doküman, repo'nun mevcut durumuna göre oluşturulmuştur. Yeni task pattern'leri eklendiğinde veya mevcut pattern'ler değiştirildiğinde bu doküman güncellenmelidir.
 ---

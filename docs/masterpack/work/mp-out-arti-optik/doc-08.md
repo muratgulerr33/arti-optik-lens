@@ -36,6 +36,22 @@ Bu doküman şunları kapsamaz:
 
 ---
 
+## V1 Scope Lock (API Contracts Context)
+
+**V1 HARD RULES:**
+- **V1 = Sadece Online Storefront + Sadece GÜNEŞ GÖZLÜĞÜ**
+- **Lens/Numaralı Ürün:** Online satılmaz (V1 dışı, sadece mağaza/POS - V2)
+- **POS:** Tamamen V2 (placeholder/feature-flag, V1 scope'tan çıkarılmış, tüm POS kontratları V2 için placeholder)
+- **Domain:** artioptiklens.com.tr (canonical base, SEO için tek kaynak)
+- **Checkout:** Sadece kredi kartı (PayTR)
+- **Kargo:** Yurtiçi Kargo entegrasyonu
+
+**POS Kontratları:**
+- Tüm POS kontratları (7.7.1, 7.7.2, 7.7.3) V2 placeholder/feature-flag olarak işaretlenmiştir
+- V1 scope'tan çıkarılmıştır, V1'de aktif değildir
+
+---
+
 ## 2. Base URLs & Environments (Frontend)
 
 ### 2.1 Internal API Routes
@@ -359,14 +375,15 @@ Frontend'den kullanılan environment variable'lar:
 
 **Evidence:** `src/app/api/search/route.ts` (lines 8-107), `src/components/search/search-overlay.tsx` (lines 144-152)
 
-### 7.7 Admin + POS Contracts (V1)
+### 7.7 Admin + POS Contracts
 
 **V1 HARD RULES:**
-- Admin & POS list sayfaları MUTLAKA paginated olmalı (cursor veya page-based, tutarlı olmalı; 1000 kayıt dump edilmemeli)
-- POS Admin içinde: barcode/productCode input, varsayılan cash seçili, Enter → hızlı satış → stok azalır. Ürün bulunamazsa → "Add product" akışı
+- Admin list sayfaları MUTLAKA paginated olmalı (cursor veya page-based, tutarlı olmalı; 1000 kayıt dump edilmemeli)
 - Settings > Undo Transaction mevcut: log listesi (paginated) + undo aksiyonu onay ile. Undo audit trail tutmalı
 
-#### 7.7.1 POS Quick Sale (Enter Flow)
+**POS V2 İŞARETLEME:** POS ve POS'a bağlı tüm kontratlar V2 placeholder/feature-flag olarak işaretlenmiştir. V1 scope'tan çıkarılmıştır. Aşağıdaki POS kontratları V2 için placeholder olarak dokümante edilmiştir.
+
+#### 7.7.1 POS Quick Sale (Enter Flow) - V2 Placeholder
 
 - **Server Action / Endpoint:** `POST /api/pos/quick-sale` (veya server action)
 - **Input:**
@@ -380,7 +397,7 @@ Frontend'den kullanılan environment variable'lar:
 - **Auth:** Required, Admin role required
 - **Usage:** POS interface (Admin içinde)
 
-#### 7.7.2 POS Transaction Log List (Paginated)
+#### 7.7.2 POS Transaction Log List (Paginated) - V2 Placeholder
 
 - **Endpoint:** `GET /api/pos/transactions`
 - **Query params:**
@@ -397,7 +414,7 @@ Frontend'den kullanılan environment variable'lar:
 - **Auth:** Required, Admin role required
 - **Usage:** Settings > Undo Transaction list page
 
-#### 7.7.3 Undo Transaction (Settings > Undo)
+#### 7.7.3 Undo Transaction (Settings > Undo) - V2 Placeholder
 
 - **Endpoint:** `POST /api/pos/transactions/[transactionId]/undo`
 - **Input:**

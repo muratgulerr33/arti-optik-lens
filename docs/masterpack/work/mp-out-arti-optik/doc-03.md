@@ -60,7 +60,7 @@ Next.js App Router kullanılıyor. Tüm route'lar `src/app/` altında tanımlı.
 | `/admin/orders` | `src/app/admin/orders/page.tsx` | Page | - | Unknown | Unknown | Protected (admin role) | Admin sipariş listesi (pagination zorunlu) |
 | `/admin/orders/[id]` | `src/app/admin/orders/[id]/page.tsx` | Page | `id` (order) | Unknown | Unknown | Protected (admin role) | Admin sipariş detay |
 | `/admin/products` | `src/app/admin/products/page.tsx` | Page | - | Unknown | Unknown | Protected (admin role) | Ürünler (ekle/düzenle, pagination zorunlu) |
-| `/admin/pos` | `src/app/admin/pos/page.tsx` | Page | - | Unknown | Unknown | Protected (admin role) | POS Hızlı Satış (V1 kilit akış: barkod input, nakit varsayılan, Enter → satış, ürün yoksa ekle butonu) |
+| `/admin/pos` | `src/app/admin/pos/page.tsx` | Page | - | Unknown | Unknown | Protected (admin role) | POS Hızlı Satış (**V2 — feature-flag ile kapalı, V1 scope'tan çıkarılmış**) |
 | `/admin/inventory` | `src/app/admin/inventory/page.tsx` | Page | - | Unknown | Unknown | Protected (admin role) | Stok Yönetimi (pagination zorunlu) |
 | `/admin/payments` | `src/app/admin/payments/page.tsx` | Page | - | Unknown | Unknown | Protected (admin role) | Ödemeler (PayTR liste, pagination zorunlu) |
 | `/admin/customers` | `src/app/admin/customers/page.tsx` | Page | - | Unknown | Unknown | Protected (admin role) | Müşteriler (sondan başa, pagination zorunlu) |
@@ -193,7 +193,6 @@ Route groups (`(group)`) kullanılmıyor. Tüm route'lar doğrudan `src/app/` al
   - `/admin` - Dashboard
   - `/admin/orders` - Siparişler
   - `/admin/products` - Ürünler (ekle/düzenle)
-  - `/admin/pos` - POS Hızlı Satış
   - `/admin/inventory` - Stok Yönetimi
   - `/admin/payments` - Ödemeler (PayTR liste)
   - `/admin/customers` - Müşteriler (sondan başa)
@@ -201,7 +200,8 @@ Route groups (`(group)`) kullanılmıyor. Tüm route'lar doğrudan `src/app/` al
   - `/admin/settings` - Ayarlar
   - `/admin/settings/undo` - İşlemi Geri Al (log listesi + geri al)
   - `/` - Mağazaya Dön
-- **Links (V2 - disabled, "Yakında" etiketi):**
+- **Links (V2 - disabled, "Yakında" etiketi veya feature-flag ile kapalı):**
+  - `/admin/pos` - POS Hızlı Satış (V2 — feature-flag ile kapalı, V1 scope'tan çıkarılmış)
   - `/admin/users` - Personel / Kullanıcılar (V2 — disabled)
   - `/admin/export` - Dışa Aktar (V2 — disabled)
 
@@ -272,21 +272,16 @@ Route groups (`(group)`) kullanılmıyor. Tüm route'lar doğrudan `src/app/` al
 2. `/admin/orders` - Sipariş listesi (pagination zorunlu)
 3. `/admin/orders/[id]` - Sipariş detay
 4. `/admin/products` - Ürünler (ekle/düzenle, pagination zorunlu)
-5. `/admin/pos` - POS Hızlı Satış (V1 kilit akış)
-6. `/admin/inventory` - Stok Yönetimi (pagination zorunlu)
-7. `/admin/payments` - Ödemeler (PayTR liste, pagination zorunlu)
-8. `/admin/customers` - Müşteriler (sondan başa, pagination zorunlu)
-9. `/admin/returns` - İptal/İade (V1 minimal, sipariş detayından yönetilebilir)
-10. `/admin/settings` - Ayarlar
-11. `/admin/settings/undo` - İşlemi Geri Al (log listesi + geri al, pagination zorunlu)
+5. `/admin/inventory` - Stok Yönetimi (pagination zorunlu)
+6. `/admin/payments` - Ödemeler (PayTR liste, pagination zorunlu)
+7. `/admin/customers` - Müşteriler (sondan başa, pagination zorunlu)
+8. `/admin/returns` - İptal/İade (V1 minimal, sipariş detayından yönetilebilir)
+9. `/admin/settings` - Ayarlar
+10. `/admin/settings/undo` - İşlemi Geri Al (log listesi + geri al, pagination zorunlu)
+- **V2 (feature-flag ile kapalı):** `/admin/pos` - POS Hızlı Satış (V2 — feature-flag ile kapalı, V1 scope'tan çıkarılmış)
 
 **Critical UI States:**
 - `/admin/*`: Layout'ta auth + role kontrolü var
-- `/admin/pos`: POS Hızlı Satış V1 kilit akışı:
-  - Barkod/Ürün kodu input
-  - Varsayılan ödeme: **Nakit seçili**
-  - Enter → hızlı satış → stok düşer
-  - Ürün yoksa "Ürün sistemde yok → Ürün ekle" butonu (barkod prefill)
 - Admin listelerinde **pagination zorunlu** (1000+ kayıt varmış gibi düşünülmeli)
 
 **Evidence:** `src/app/admin/layout.tsx` (lines 7-11)
@@ -468,11 +463,11 @@ Route groups (`(group)`) kullanılmıyor. Tüm route'lar doğrudan `src/app/` al
 
 ### 10.2 SEO Features
 - **Open Graph:** Product detail sayfasında `openGraph` metadata var
-- **Canonical URLs:** Unknown (kanıt: codebase search sonuçsuz)
+- **Canonical URLs:** Canonical base domain: `https://artioptiklens.com.tr` (V1 hard rule, tüm canonical URL'ler bu base'i kullanır)
 - **Robots:** Unknown (kanıt: `robots.txt` dosyası yok)
 - **Sitemap:** Unknown (kanıt: `sitemap.xml` dosyası yok)
 
-**Evidence:** `src/app/urun/[slug]/page.tsx` (lines 63-67), Codebase search (canonical, robots.txt, sitemap.xml bulunamadı)
+**Evidence:** `src/app/urun/[slug]/page.tsx` (lines 63-67, canonical base domain kullanılmalı), Codebase search (canonical, robots.txt, sitemap.xml bulunamadı)
 
 ---
 

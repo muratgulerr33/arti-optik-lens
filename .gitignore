@@ -46,3 +46,8 @@ masterpack-tools.zip
 # secrets
 .env
 .env.*
+
+# seed data (gerçek data commit edilmez, sadece sample commit edilir)
+tools/seed/input/*.full.json
+tools/seed/input/*.full.csv
+# Sample dosya commit edilebilir: tools/seed/input/v1-seed.sample.json

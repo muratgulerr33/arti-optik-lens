@@ -169,7 +169,8 @@ En az 8 kritik akış test edilmelidir. Her akış için:
   - Auth kontrolü: `/login?callbackUrl=/account` redirect
 - **Evidence:** `03.routes-and-navigation-map.md` (section 7.1), `src/app/account/layout.tsx` (auth protection)
 
-### SMK-09: POS Quick Sale
+### SMK-09: POS Quick Sale - V2 Placeholder
+- **Status:** V2 feature, V1 scope'tan çıkarılmış, feature-flag ile kapalı
 - **Steps:**
   1. POS ekranında barcode/SKU girilir
   2. Enter tuşuna basılır
@@ -179,9 +180,10 @@ En az 8 kritik akış test edilmelidir. Her akış için:
   - Barcode/SKU enter → Enter → sale created → stock decreases
   - Product not found → "Add Product" CTA appears
   - Out of stock → error shown; no negative stock
-- **Evidence:** POS implementation, stock management
+- **Evidence:** POS implementation, stock management (V2 placeholder)
 
-### SMK-10: Undo Transaction
+### SMK-10: Undo Transaction - V2 Placeholder
+- **Status:** V2 feature, V1 scope'tan çıkarılmış, feature-flag ile kapalı
 - **Steps:**
   1. Settings > Undo list sayfasına gidilir
   2. Undo list paginated olarak gösterilir
@@ -189,14 +191,15 @@ En az 8 kritik akış test edilmelidir. Her akış için:
 - **Expected:**
   - Settings > Undo list paginated
   - Undo a POS transaction → stock restored + audit trail remains
-- **Evidence:** Undo transaction implementation, audit trail
+- **Evidence:** Undo transaction implementation, audit trail (V2 placeholder)
 
-### SMK-11: Concurrency / Last-Item
+### SMK-11: Concurrency / Last-Item - V2 Placeholder
+- **Status:** V2 feature, V1 scope'tan çıkarılmış, feature-flag ile kapalı
 - **Steps:**
   1. Son stokta (stock = 1) olan bir ürün için iki hızlı satış aynı anda yapılır
 - **Expected:**
   - Two quick sales on last stock simultaneously → only one succeeds, other gets OUT_OF_STOCK; stock never negative
-- **Evidence:** Stock concurrency handling, database transactions
+- **Evidence:** Stock concurrency handling, database transactions (V2 placeholder)
 
 ### SMK-12: Payments (PayTR Only)
 - **Steps:**

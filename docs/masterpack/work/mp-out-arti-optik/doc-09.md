@@ -252,13 +252,13 @@ try {
 
 **Kritik Kural:** Aşağıdaki durumlarda fiyat ve stok bilgisi her zaman "fresh" olmalıdır. Cache'den servis edilmemelidir:
 
-1. **POS quick sale** - Hızlı satış işlemleri için fiyat ve stok cache'den gelmemeli
-2. **Undo transaction** - İşlem geri alma durumunda fresh data gerekli
-3. **Admin inventory screens** - Admin envanter ekranları her zaman fresh data göstermeli
-4. **Checkout totals and final confirmation** - Ödeme toplamları ve final onay için fresh fiyat/stok gerekli
+1. **Admin inventory screens** - Admin envanter ekranları her zaman fresh data göstermeli
+2. **Checkout totals and final confirmation** - Ödeme toplamları ve final onay için fresh fiyat/stok gerekli
 
-**POS & Admin Endpoints:**
-- POS ve Admin endpoint'leri `force-dynamic` / `no-store` equivalent olmalıdır (bu kural dokümante edilmelidir).
+**POS V2 İŞARETLEME:** POS quick sale ve Undo transaction cache kuralları V2 placeholder olarak işaretlenmiştir. V1 scope'tan çıkarılmıştır.
+
+**Admin Endpoints:**
+- Admin endpoint'leri `force-dynamic` / `no-store` equivalent olmalıdır (bu kural dokümante edilmelidir).
 
 **Storefront Product Pages:**
 - Storefront ürün listeleme/detay sayfaları içerik (başlık/açıklama/görseller) için cache/ISR kullanabilir

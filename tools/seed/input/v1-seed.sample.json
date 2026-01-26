@@ -1,0 +1,120 @@
+[
+  {
+    "name": "Ray-Ban Original Wayfarer",
+    "slug": "ray-ban-original-wayfarer",
+    "brand": "Ray-Ban",
+    "price": 1540.00,
+    "stock": 5,
+    "description": "Klasik Ray-Ban Wayfarer güneş gözlüğü",
+    "gender": "unisex",
+    "sku": "RB-2140-901-50",
+    "imageUrls": [
+      "https://example.com/images/ray-ban-wayfarer-1.jpg",
+      "https://example.com/images/ray-ban-wayfarer-2.jpg"
+    ],
+    "attributes": {
+      "color_frame": "Black",
+      "color_lens": "G-15 Green",
+      "material": "Acetate",
+      "lens_tech": "Polarized",
+      "size_bridge": 22,
+      "size_temple": 150
+    },
+    "breadcrumb": ["Güneş Gözlüğü", "Unisex"],
+    "sourceUrl": "https://example.com/product/ray-ban-wayfarer"
+  },
+  {
+    "name": "Oakley Holbrook",
+    "slug": "oakley-holbrook",
+    "brand": "Oakley",
+    "price": 1890.00,
+    "stock": 3,
+    "description": "Oakley Holbrook güneş gözlüğü",
+    "gender": "men",
+    "sku": "OO-9208-01",
+    "imageUrls": [
+      "https://example.com/images/oakley-holbrook-1.jpg"
+    ],
+    "attributes": {
+      "color_frame": "Matte Black",
+      "color_lens": "Prizm Black",
+      "material": "O Matter",
+      "lens_tech": "Prizm",
+      "size_bridge": 20,
+      "size_temple": 140
+    },
+    "breadcrumb": ["Güneş Gözlüğü", "Erkek"],
+    "sourceUrl": "https://example.com/product/oakley-holbrook"
+  },
+  {
+    "name": "Prada PR 01VS",
+    "slug": "prada-pr-01vs",
+    "brand": "Prada",
+    "price": 3200.00,
+    "stock": 2,
+    "description": "Prada lüks güneş gözlüğü",
+    "gender": "women",
+    "sku": "PR-01VS-1AB",
+    "imageUrls": [
+      "https://example.com/images/prada-pr-01vs-1.jpg",
+      "https://example.com/images/prada-pr-01vs-2.jpg"
+    ],
+    "attributes": {
+      "color_frame": "Black",
+      "color_lens": "Grey",
+      "material": "Acetate",
+      "lens_tech": "UV Protection",
+      "size_bridge": 21,
+      "size_temple": 145
+    },
+    "breadcrumb": ["Güneş Gözlüğü", "Kadın"],
+    "sourceUrl": "https://example.com/product/prada-pr-01vs"
+  },
+  {
+    "name": "Chanel CH5347",
+    "slug": "chanel-ch5347",
+    "brand": "Chanel",
+    "price": 4500.00,
+    "stock": 1,
+    "description": "Chanel ikonik güneş gözlüğü",
+    "gender": "women",
+    "sku": "CH-5347-001",
+    "imageUrls": [
+      "https://example.com/images/chanel-ch5347-1.jpg"
+    ],
+    "attributes": {
+      "color_frame": "Black with Logo",
+      "color_lens": "Dark Grey",
+      "material": "Acetate",
+      "lens_tech": "UV Protection",
+      "size_bridge": 20,
+      "size_temple": 140
+    },
+    "breadcrumb": ["Güneş Gözlüğü", "Kadın"],
+    "sourceUrl": "https://example.com/product/chanel-ch5347"
+  },
+  {
+    "name": "Versace VE4365",
+    "slug": "versace-ve4365",
+    "brand": "Versace",
+    "price": 2800.00,
+    "stock": 4,
+    "description": "Versace lüks güneş gözlüğü",
+    "gender": "unisex",
+    "sku": "VE-4365-001",
+    "imageUrls": [
+      "https://example.com/images/versace-ve4365-1.jpg",
+      "https://example.com/images/versace-ve4365-2.jpg"
+    ],
+    "attributes": {
+      "color_frame": "Gold",
+      "color_lens": "Brown",
+      "material": "Metal",
+      "lens_tech": "UV Protection",
+      "size_bridge": 19,
+      "size_temple": 135
+    },
+    "breadcrumb": ["Güneş Gözlüğü", "Unisex"],
+    "sourceUrl": "https://example.com/product/versace-ve4365"
+  }
+]

@@ -2,6 +2,80 @@ ARTI OPTİK Next, ARTI OPTİK’in online mağazası + admin paneli + mağaza i�
 
 **Evidence:** `README.md` (lines 9-60), `docker-compose.yml`, `package.json` (scripts)
 
+---
+
+## V1 SCOPE LOCK (Kesin Kararlar - Değiştirilemez)
+
+**V1 = Sadece Online Storefront + Sadece GÜNEŞ GÖZLÜĞÜ**
+
+### V1 Ürün Kapsamı
+- **Güneş Gözlüğü:** V1'de sadece güneş gözlüğü online satılır
+- **Lens/Numaralı Ürün:** Online satılmaz (V1 dışı, sadece mağaza/POS - V2)
+- **Kontakt Lens:** Online satılmaz (V1 dışı)
+
+### V1 Özellik Kapsamı
+- **POS:** Tamamen V2 (placeholder/feature-flag, V1 scope'tan çıkarılmış)
+- **Checkout:** Sadece kredi kartı (PayTR)
+- **Kargo:** Yurtiçi Kargo entegrasyonu
+- **Keşfet = Hub:** Hub sayfası kategori-index kapısı
+
+### V1 Domain & SEO
+- **Domain:** artioptiklens.com.tr (canonical base, SEO için tek kaynak)
+- **Canonical URLs:** Tüm canonical URL'ler `https://artioptiklens.com.tr` base'i kullanır
+
+### V2 Placeholder/Feature-Flag
+- **POS modülü:** Mağaza içi barkod ile hızlı satış - V2'de aktif olacak, V1'de feature-flag ile kapalı
+
+---
+
+## V1 Kategori/Hub Stratejisi
+
+### Temel Kural: Attributes ≠ Category
+- **Marka, materyal, lens tipi, renk = Filtre (attribute), kategori değil**
+- Bu özellikler kategori ağacına eklenmez, sadece filtre olarak kullanılır
+
+### V1 Category/Hub Modeli
+
+**Seviye-1 (Root/Gender):**
+- Kadın (women)
+- Erkek (men)
+- Unisex
+- Kids: Opsiyonel ama V1 UI'da kapalı (dokümanda "disabled")
+
+**Ürün Tipi:**
+- Güneş Gözlüğü (Sunglasses) - V1'de tek ürün tipi
+
+**Stil/Form Seti (V1 Kilitli Başlangıç Listesi):**
+- Round (Yuvarlak)
+- Square (Kare)
+- Aviator (Pilot)
+- Wayfarer
+- Geometric (Geometrik)
+- Oversize
+- Rectangular + Cat-eye: "V1'de hazır ama ürün kapsaması yoksa UI'da gizli/disabled" notu ile
+
+### URL Standardı (Patlamasın Diye Tek Standart)
+
+**Hub Kapısı:**
+- `/hub/{gender}` - Örn: `/hub/kadin`, `/hub/erkek`, `/hub/unisex`
+
+**Listeleme:**
+- `/kategori/{gender}/gunes-gozlugu` - Örn: `/kategori/kadin/gunes-gozlugu`
+
+**Stil Listeleme:**
+- `/kategori/{gender}/gunes-gozlugu/{style}` - Örn: `/kategori/kadin/gunes-gozlugu/aviator`
+
+**Ürün Detay:**
+- `/urun/{slug}` - Örn: `/urun/ray-ban-original-wayfarer`
+
+**Not:** Bu prefix'li yapı reserved slug çakışmasını azaltır ve ileride genişlerken kırılmayı önler.
+
+### V1 Marka Listesi (Lock)
+
+Ray-Ban, Oakley, Prada, Miu Miu, Chanel, Versace, Dolce & Gabbana, Gucci, Tom Ford, Burberry, Swarovski, Michael Kors, Emporio Armani, Armani Exchange, Calvin Klein, Vogue, Lacoste, Persol
+
+---
+
 ### 10.2 Architecture
 - ✅ App Router yapısı kurulu
 - ✅ Component katmanı organize edilmiş

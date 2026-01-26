@@ -12,6 +12,14 @@ export default function DesignPage() {
   // Initialize with false, will be set correctly after mount
   const [isDark, setIsDark] = useState(false)
   const [mounted, setMounted] = useState(false)
+  const [tokenValues, setTokenValues] = useState<Record<string, string>>({})
+
+  const readTokenValue = (tokenName: string): string => {
+    if (typeof window === 'undefined') return ''
+    const html = document.documentElement
+    const computed = getComputedStyle(html)
+    return computed.getPropertyValue(tokenName).trim() || ''
+  }
 
   useEffect(() => {
     // Check initial theme after mount
@@ -19,10 +27,33 @@ export default function DesignPage() {
     // We need to set state here to sync with DOM, which is an external system
     const html = document.documentElement
     const darkMode = html.classList.contains("dark")
-    // eslint-disable-next-line react-hooks/exhaustive-deps, @typescript-eslint/no-floating-promises
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsDark(darkMode)
+    
+    // Runtime check: Count .dark elements
+    const darkElements = document.querySelectorAll('.dark')
+    console.log(`[Design System Check] Found ${darkElements.length} .dark element(s)`)
+    console.log(`[Design System Check] Dark mode class on:`, darkMode ? 'document.documentElement' : 'none')
+    
+    // Read token values from computed styles
+    const tokens: Record<string, string> = {
+      primary: readTokenValue('--primary'),
+      background: readTokenValue('--background'),
+      card: readTokenValue('--card'),
+      destructive: readTokenValue('--destructive'),
+      secondary: readTokenValue('--secondary'),
+    }
+    setTokenValues(tokens)
+    
+    // Log token values for verification
+    console.log('[Design System Check] Token values:', {
+      '--primary': tokens.primary,
+      '--background': tokens.background,
+      '--card': tokens.card,
+    })
+    
     setMounted(true)
-  }, [])
+  }, [isDark])
 
   const toggleTheme = () => {
     const html = document.documentElement
@@ -33,6 +64,17 @@ export default function DesignPage() {
       html.classList.add("dark")
       setIsDark(true)
     }
+    // Re-read token values after theme change
+    setTimeout(() => {
+      const tokens: Record<string, string> = {
+        primary: readTokenValue('--primary'),
+        background: readTokenValue('--background'),
+        card: readTokenValue('--card'),
+        destructive: readTokenValue('--destructive'),
+        secondary: readTokenValue('--secondary'),
+      }
+      setTokenValues(tokens)
+    }, 50)
   }
 
   return (
@@ -85,7 +127,7 @@ export default function DesignPage() {
               <CardHeader>
                 <CardTitle className="text-sm font-mono">--primary</CardTitle>
                 <CardDescription className="text-xs font-mono">
-                  oklch(0.577 0.245 27.325)
+                  {tokenValues.primary || 'oklch(0.56 0.235 27.3)'}
                 </CardDescription>
                 <p className="text-xs text-muted-foreground mt-1">
                   ✓ Same vivid red in both Light & Dark modes
@@ -102,7 +144,9 @@ export default function DesignPage() {
               </div>
               <CardHeader>
                 <CardTitle className="text-sm font-mono">--secondary</CardTitle>
-                <CardDescription className="text-xs">Light: oklch(0.92 0.01 17.38)</CardDescription>
+                <CardDescription className="text-xs">
+                  {tokenValues.secondary || 'oklch(0.94 0.012 95)'}
+                </CardDescription>
               </CardHeader>
             </Card>
 
@@ -116,9 +160,7 @@ export default function DesignPage() {
               <CardHeader>
                 <CardTitle className="text-sm font-mono">--background</CardTitle>
                 <CardDescription className="text-xs font-mono">
-                  {isDark 
-                    ? "oklch(0.141 0.005 285.823)" 
-                    : "oklch(0.971 0.013 17.38)"}
+                  {tokenValues.background || (isDark ? "oklch(0.20 0.012 55)" : "oklch(0.975 0.016 95)")}
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -133,9 +175,7 @@ export default function DesignPage() {
               <CardHeader>
                 <CardTitle className="text-sm font-mono">--card</CardTitle>
                 <CardDescription className="text-xs">
-                  {isDark 
-                    ? "oklch(0.30 0.092 26.042)" 
-                    : "oklch(1 0 0)"}
+                  {tokenValues.card || (isDark ? "oklch(0.235 0.010 55)" : "oklch(1 0 0)")}
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -149,7 +189,9 @@ export default function DesignPage() {
               </div>
               <CardHeader>
                 <CardTitle className="text-sm font-mono">--destructive</CardTitle>
-                <CardDescription className="text-xs">oklch(0.577 0.245 27.325)</CardDescription>
+                <CardDescription className="text-xs">
+                  {tokenValues.destructive || tokenValues.primary || 'oklch(0.56 0.235 27.3)'}
+                </CardDescription>
               </CardHeader>
             </Card>
 
@@ -184,7 +226,7 @@ export default function DesignPage() {
                   <p className="text-sm font-medium">Light Mode</p>
                   <div className="h-16 bg-primary rounded-md flex items-center justify-center">
                     <span className="text-primary-foreground font-mono text-xs">
-                      oklch(0.577 0.245 27.325)
+                      {tokenValues.primary || 'oklch(0.56 0.235 27.3)'}
                     </span>
                   </div>
                 </div>
@@ -192,7 +234,7 @@ export default function DesignPage() {
                   <p className="text-sm font-medium">Dark Mode</p>
                   <div className="h-16 bg-primary rounded-md flex items-center justify-center">
                     <span className="text-primary-foreground font-mono text-xs">
-                      oklch(0.577 0.245 27.325)
+                      {tokenValues.primary || 'oklch(0.58 0.225 27.3)'}
                     </span>
                   </div>
                 </div>
@@ -346,7 +388,9 @@ export default function DesignPage() {
                 <div className="space-y-2">
                   <Button variant="default" className="w-full">Default</Button>
                   <p className="text-xs text-muted-foreground text-center">Solid Red</p>
-                  <p className="text-xs text-primary/70 text-center font-mono">oklch(0.577 0.245 27.325)</p>
+                  <p className="text-xs text-primary/70 text-center font-mono">
+                    {tokenValues.primary || 'oklch(0.56 0.235 27.3)'}
+                  </p>
                 </div>
                 <div className="space-y-2">
                   <Button variant="secondary" className="w-full">Secondary</Button>
@@ -614,6 +658,49 @@ export default function DesignPage() {
               </CardContent>
             </Card>
           </div>
+        </section>
+
+        {/* RUNTIME CHECK SECTION */}
+        <section className="space-y-6">
+          <Card className="border-primary/30 bg-primary/5">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <span className="text-primary">🔍</span>
+                Runtime Token Verification
+              </CardTitle>
+              <CardDescription>
+                Live token values from getComputedStyle - Check browser console for detailed logs
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <p className="text-xs font-medium text-muted-foreground">--background</p>
+                  <p className="text-sm font-mono bg-background p-2 rounded border">
+                    {tokenValues.background || 'Loading...'}
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <p className="text-xs font-medium text-muted-foreground">--card</p>
+                  <p className="text-sm font-mono bg-card p-2 rounded border">
+                    {tokenValues.card || 'Loading...'}
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <p className="text-xs font-medium text-muted-foreground">--primary</p>
+                  <p className="text-sm font-mono bg-primary text-primary-foreground p-2 rounded">
+                    {tokenValues.primary || 'Loading...'}
+                  </p>
+                </div>
+              </div>
+              <div className="mt-4 pt-4 border-t">
+                <p className="text-xs text-muted-foreground">
+                  <strong>Dark Mode Check:</strong> {isDark ? 'Active' : 'Inactive'} • 
+                  Class location: <code className="text-xs">document.documentElement</code>
+                </p>
+              </div>
+            </CardContent>
+          </Card>
         </section>
 
         {/* FOOTER */}

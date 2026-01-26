@@ -10,7 +10,7 @@ export default function Footer() {
               ARTI OPTİK
             </Link>
             <p className="mt-4 text-sm text-muted-foreground max-w-xs">
-              Türkiye'nin en seçkin lüks güneş gözlüğü koleksiyonları. Yetkili satıcı garantisiyle.
+              Türkiye&apos;nin en seçkin lüks güneş gözlüğü koleksiyonları. Yetkili satıcı garantisiyle.
             </p>
           </div>
           

@@ -37,6 +37,8 @@
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
 
+  --color-media-surface: var(--media-surface);
+
   /* --- 3. RADIUS (Köşe Yuvarlaklığı) --- */
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
@@ -56,71 +58,102 @@
   }
 }
 
-/* --- DEĞİŞKENLER (FERRARI RED + ESPRESSO DARK TEMA) --- */
-:root {
-  /* LIGHT MODE: Pudra Beyazı & Ferrari Kırmızısı */
-  --background: oklch(0.971 0.013 17.38); /* Pudra Beyazı */
-  --foreground: oklch(0.258 0.092 26.042); /* Espresso (Yazı) */
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.258 0.092 26.042);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.258 0.092 26.042);
-  
-  /* FERRARI RED (Shadcn Red - Canlı, Enerjik Kırmızı) */
-  --primary: oklch(0.577 0.245 27.325); 
-  --primary-foreground: oklch(1 0 0);
+/* --- DEĞİŞKENLER (ORGANIC UI / EYE COMFORT — WARM PAPER / WARM DARK) --- */
+@layer base {
+  :root {
+    --radius: 0.65rem;
 
-  --secondary: oklch(0.92 0.01 17.38);
-  --secondary-foreground: oklch(0.258 0.092 26.042);
-  --muted: oklch(0.92 0.01 17.38);
-  --muted-foreground: oklch(0.55 0.05 26.042);
-  --accent: oklch(0.92 0.01 17.38);
-  --accent-foreground: oklch(0.258 0.092 26.042);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.971 0.013 17.38);
-  --border: oklch(0.85 0.02 17.38);
-  --input: oklch(0.85 0.02 17.38);
-  --ring: oklch(0.577 0.245 27.325);
-  --radius: 0.5rem;
-  
-  /* Harf Aralıkları (Lüks için) */
-  --tracking-tighter: -0.05em;
-  --tracking-widest: 0.15em;
-}
+    /* Organic UI / Eye Comfort — Warm Paper */
+    --background: oklch(0.975 0.016 95);      /* warm paper, #FAF7EB civarı */
+    --foreground: oklch(0.216 0.006 56.043);  /* stone-900 (#1c1917) */
 
-.dark {
-  /* DARK MODE: Espresso Kahve & Ferrari Kırmızısı */
-  --background: oklch(0.141 0.005 285.823); /* Espresso (Zemin) */
-  --foreground: oklch(0.971 0.013 17.38); /* Pudra (Yazı) */
-  
-  /* Kartlar zeminden biraz daha açık (Sütlü Espresso) */
-  --card: oklch(0.30 0.092 26.042);
-  --card-foreground: oklch(0.971 0.013 17.38);
-  --popover: oklch(0.30 0.092 26.042);
-  --popover-foreground: oklch(0.971 0.013 17.38);
+    /* Surfaces */
+    --card: oklch(1 0 0);                     /* keep pure white for cards */
+    --card-foreground: oklch(0.216 0.006 56.043);
 
-  /* Ferrari Red (Shadcn Red - Koyu modda da aynı vivid kırmızı) */
-  --primary: oklch(0.577 0.245 27.325);
-  --primary-foreground: oklch(1 0 0);
+    --popover: oklch(1 0 0);
+    --popover-foreground: oklch(0.216 0.006 56.043);
 
-  --secondary: oklch(0.35 0.092 26.042);
-  --secondary-foreground: oklch(0.971 0.013 17.38);
-  --muted: oklch(0.35 0.092 26.042);
-  --muted-foreground: oklch(0.70 0.05 26.042);
-  --accent: oklch(0.35 0.092 26.042);
-  --accent-foreground: oklch(0.971 0.013 17.38);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.971 0.013 17.38);
-  --border: oklch(0.35 0.092 26.042);
-  --input: oklch(0.35 0.092 26.042);
-  --ring: oklch(0.577 0.245 27.325);
+    /* Brand */
+    --primary: oklch(0.56 0.235 27.3);       /* warm paper + espresso */
+    --primary-foreground: oklch(0.97 0.008 95);  /* warm off-white */
+
+    /* UI neutrals (warm) */
+    --secondary: oklch(0.94 0.012 95);
+    --secondary-foreground: oklch(0.216 0.006 56.043);
+
+    --muted: oklch(0.955 0.012 95);
+    --muted-foreground: oklch(0.553 0.013 58.071); /* stone-500 (#78716c) */
+
+    --accent: oklch(0.97 0.001 106.424);      /* stone-100 */
+    --accent-foreground: oklch(0.216 0.006 56.043);
+
+    --destructive: var(--primary);
+    --destructive-foreground: var(--primary-foreground);
+
+    --border: oklch(0.923 0.003 48.717);      /* warm stroke */
+    --input: oklch(0.923 0.003 48.717);       /* warm stroke */
+    --ring: oklch(0.56 0.235 27.3);           /* primary ile uyumlu */
+
+    /* Critical: media/photo surface MUST stay pure white in both modes */
+    --media-surface: oklch(1 0 0);
+
+    --chart-1: oklch(0.577 0.245 27.325);
+    --chart-2: oklch(0.92 0.011 7.38);
+    --chart-3: oklch(0.971 0.013 17.38);
+    --chart-4: oklch(0.30 0.092 26.042);
+    --chart-5: oklch(0.56 0.19 32);
+  }
+
+  .dark {
+    /* Organic UI / Eye Comfort — Warm Dark (FB benzeri warm dark) */
+    --background: oklch(0.20 0.012 55);       /* #1A1614–#1D1917 bandı */
+    --foreground: oklch(0.923 0.003 48.717);  /* stone-200 (#e7e5e4) */
+
+    /* Dark surfaces - warm espresso */
+    --card: oklch(0.235 0.010 55);            /* warm espresso surface */
+    --card-foreground: oklch(0.923 0.003 48.717);
+
+    --popover: oklch(0.235 0.010 55);         /* warm espresso surface */
+    --popover-foreground: oklch(0.923 0.003 48.717);
+
+    /* Brand */
+    --primary: oklch(0.56 0.235 27.3);       /* warm paper + espresso - same as light */
+    --primary-foreground: oklch(0.97 0.008 95);  /* warm off-white */
+
+    --secondary: oklch(0.245 0.010 55);
+    --secondary-foreground: oklch(0.90 0.01 95);
+
+    --muted: oklch(0.255 0.010 55);
+    --muted-foreground: oklch(0.709 0.01 56.259); /* stone-400 (#a8a29e) */
+
+    --accent: oklch(0.268 0.007 34.298);      /* stone-800 */
+    --accent-foreground: oklch(0.923 0.003 48.717);
+
+    --destructive: var(--primary);
+    --destructive-foreground: var(--primary-foreground);
+
+    --border: oklch(0.30 0.012 55);           /* warm stroke */
+    --input: oklch(0.30 0.012 55);           /* warm stroke */
+    --ring: oklch(0.637 0.237 25.331);        /* red-500 */
+
+    /* Critical: unchanged */
+    --media-surface: oklch(1 0 0);
+
+    --chart-1: oklch(0.577 0.245 27.325);
+    --chart-2: oklch(0.65 0.20 32);
+    --chart-3: oklch(0.55 0.18 45);
+    --chart-4: oklch(0.70 0.15 30);
+    --chart-5: oklch(0.60 0.22 25);
+  }
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
-    @apply bg-background text-foreground font-body;
+    @apply bg-background text-foreground;
   }
 }

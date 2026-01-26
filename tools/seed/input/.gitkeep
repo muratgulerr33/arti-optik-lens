@@ -1,0 +1,3 @@
+# Bu klasör seed input dosyalarını içerir
+# Gerçek data dosyaları (*.full.json, *.full.csv) gitignore'da
+# Sample dosya (v1-seed.sample.json) commit edilebilir

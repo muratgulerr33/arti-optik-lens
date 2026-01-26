@@ -1,11 +1,16 @@
 import type { Metadata } from "next";
-import { 
-  fontDisplay, 
-  fontBody, 
-  fontNumbers 
-} from "@/lib/fonts";
-import "./globals.css";
+import { Toaster } from "sonner";
+
+import { ThemeProvider } from "@/components/theme/theme-provider";
+import { AuthProvider } from "@/components/auth/auth-provider";
+import { FavoritesProvider } from "@/components/favorites/favorites-provider";
+import { CartProvider } from "@/components/cart/cart-provider";
+import { HeaderProvider } from "@/components/header/header-provider";
+import { SearchProvider } from "@/components/search/search-provider";
+
+import { fontDisplay, fontBody, fontNumbers } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
+import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Artı Optik | Premium Eyewear",
@@ -21,13 +26,30 @@ export default function RootLayout({
     <html lang="tr" suppressHydrationWarning>
       <body
         className={cn(
-          "min-h-screen bg-background font-body antialiased",
+          "min-h-screen bg-background font-body text-foreground antialiased",
           fontDisplay.variable,
           fontBody.variable,
           fontNumbers.variable
         )}
       >
-        {children}
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <AuthProvider>
+            <FavoritesProvider>
+              <CartProvider>
+                <HeaderProvider>
+                  <SearchProvider>{children}</SearchProvider>
+                </HeaderProvider>
+              </CartProvider>
+            </FavoritesProvider>
+          </AuthProvider>
+
+          <Toaster position="top-center" />
+        </ThemeProvider>
       </body>
     </html>
   );

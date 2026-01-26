@@ -1,5 +1,5 @@
 import { pgTable, serial, text, integer, boolean, numeric, jsonb, index, customType, timestamp } from 'drizzle-orm/pg-core';
-import { relations, sql } from 'drizzle-orm';
+import { relations } from 'drizzle-orm';
 
 /**
  * ------------------------------------------------------------------
@@ -61,15 +61,24 @@ export const products = pgTable('products', {
   categoryId: integer('category_id').references(() => categories.id).notNull(),
   
   name: text('name').notNull(), // Ürün Adı
+  slug: text('slug').notNull().unique(), // URL slug (örn: 'ray-ban-original-wayfarer')
   description: text('description'), // SEO açıklaması
   
   // HEDEF KİTLE (Kategori ağacını destekler)
   gender: text('gender').notNull(), // 'men', 'women', 'unisex', 'kids' (V2 Hazır)
   
+  // V1: productType sabit "sunglasses" (V2'de çocuk/lens/aksesuar eklenebilir)
+  productType: text('product_type').notNull().default('sunglasses'), // 'sunglasses', 'kids', 'lens', 'accessories' (V2)
+  
+  // Seed importer için source bilgileri (ileride refresh için)
+  sourceUrl: text('source_url'), // Scrape kaynak URL
+  sourceData: jsonb('source_data'), // Breadcrumb ve diğer source metadata
+  
   createdAt: timestamp('created_at').defaultNow(),
 }, (t) => ({
   brandIdx: index('product_brand_idx').on(t.brandId),
   categoryIdx: index('product_category_idx').on(t.categoryId),
+  slugIdx: index('product_slug_idx').on(t.slug),
 }));
 
 // 4. VARYANTLAR (VARIANTS - THE REAL ITEM)
@@ -82,6 +91,9 @@ export const productVariants = pgTable('product_variants', {
   sku: text('sku').notNull().unique(), // Stok Kodu (RB-2140-901-50)
   price: numeric('price', { precision: 10, scale: 2 }).notNull(), // 15400.00
   stock: integer('stock').notNull().default(0),
+  
+  // Stok durumu için hızlı erişim (V1 SEO için)
+  stockStatus: text('stock_status').default('in_stock'), // 'in_stock', 'out_of_stock', 'low_stock'
   
   // --- FİLTRELEME & TEKNİK ÖZELLİKLER (JSONB MAGIC) ---
   // Burası senin "Deep Research" raporundaki en kritik yer.

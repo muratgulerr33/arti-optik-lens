@@ -95,7 +95,10 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('Search API error:', error);
-    // Return empty arrays on error (as per plan requirements)
+    // Return 200 with empty results on DB/connection errors so client stays usable
+    const cause = error instanceof Error ? error.cause : null;
+    const code = (cause as { code?: string })?.code ?? (error as { code?: string })?.code;
+    const isConnectionError = code === 'ECONNREFUSED';
     return NextResponse.json(
       {
         items: [],
@@ -103,7 +106,7 @@ export async function GET(request: NextRequest) {
         fallbackCategory: null,
         fallbackItems: [],
       },
-      { status: 500 }
+      { status: isConnectionError ? 200 : 500 }
     );
   }
 }

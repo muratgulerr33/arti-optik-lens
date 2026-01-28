@@ -5,6 +5,8 @@ import { ThemeProvider } from "@/components/theme/theme-provider";
 import { AuthProvider } from "@/components/auth/auth-provider";
 import { FavoritesProvider } from "@/components/favorites/favorites-provider";
 import { CartProvider } from "@/components/cart/cart-provider";
+import { Header } from "@/components/layout/header";
+import { Footer } from "@/components/layout/footer";
 import { HeaderProvider } from "@/components/header/header-provider";
 import { SearchProvider } from "@/components/search/search-provider";
 
@@ -42,7 +44,11 @@ export default function RootLayout({
             <FavoritesProvider>
               <CartProvider>
                 <HeaderProvider>
-                  <SearchProvider>{children}</SearchProvider>
+                  <SearchProvider>
+                    <Header />
+                    {children}
+                    <Footer />
+                  </SearchProvider>
                 </HeaderProvider>
               </CartProvider>
             </FavoritesProvider>

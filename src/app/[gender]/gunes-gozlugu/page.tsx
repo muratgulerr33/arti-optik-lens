@@ -50,7 +50,7 @@ async function getProductsByGender(gender: string): Promise<{
           : (firstImg as { src?: string })?.src ?? "/placeholder-product.jpg"
       return {
         title: r.name,
-        price: r.variantPrice ?? 0,
+        price: Number(r.variantPrice ?? 0),
         image: image || "/placeholder-product.jpg",
         slug: r.slug,
         brand: r.brandName,

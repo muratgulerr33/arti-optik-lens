@@ -10,10 +10,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   // Use getDbForAdapter() so adapter receives real Drizzle instance (Proxy fails is(db, PgDatabase))
   // Cast to satisfy NextAuth Adapter type vs custom user schema (role) mismatch
   adapter: DrizzleAdapter(getDbForAdapter(), {
-    usersTable: users,
-    accountsTable: accounts,
-    sessionsTable: sessions,
-    verificationTokensTable: verificationTokens,
+    usersTable: users as any,
+    accountsTable: accounts as any,
+    sessionsTable: sessions as any,
+    verificationTokensTable: verificationTokens as any,
   }) as any,
   providers: [
     Credentials({

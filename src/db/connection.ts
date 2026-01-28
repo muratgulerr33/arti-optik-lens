@@ -25,6 +25,22 @@ function getDb() {
 // This ensures DB connection is only attempted at runtime, not during build
 let dbInstance: ReturnType<typeof getDb> | null = null;
 
+/** Returns the real Drizzle instance for adapters (e.g. DrizzleAdapter) that require it. */
+export function getDbForAdapter(): ReturnType<typeof getDb> {
+  if (!dbInstance) {
+    if (!process.env.DATABASE_URL) {
+      throw new Error('DATABASE_URL is missing. Database operations are not available.');
+    }
+    try {
+      dbInstance = getDb();
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : 'Database connection failed';
+      throw new Error(msg);
+    }
+  }
+  return dbInstance;
+}
+
 type DbType = ReturnType<typeof getDb>;
 
 const handler: ProxyHandler<DbType> = {

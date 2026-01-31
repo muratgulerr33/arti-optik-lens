@@ -12,10 +12,13 @@
 
 # testing
 /coverage
+playwright-report/
+test-results/
 
 # next.js
 /.next/
 /out/
+.turbo/
 
 # production
 /build
@@ -51,3 +54,8 @@ masterpack-tools.zip
 tools/seed/input/*.full.json
 tools/seed/input/*.full.csv
 # Sample dosya commit edilebilir: tools/seed/input/v1-seed.sample.json
+
+# Large raw imports / bundles (commit dışı)
+import-bundle*/
+import-bundle-v1*/
+docs/forensics/raw*/

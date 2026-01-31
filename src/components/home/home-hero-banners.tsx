@@ -21,18 +21,24 @@ const BANNERS = [
   },
 ] as const;
 
+const BANNER_TEST_IDS: Record<string, string> = {
+  "/kadin/gunes-gozlugu": "home-banner-kadin",
+  "/erkek/gunes-gozlugu": "home-banner-erkek",
+};
+
 export function HomeHeroBanners() {
   return (
-    <section className="space-y-3 sm:space-y-4">
+    <section className="space-y-3 sm:space-y-4" data-testid="home-hero">
       <HeroImageDevCheck />
       {BANNERS.map((b) => (
         <Link
           key={b.href}
           href={b.href}
           aria-label={b.ariaLabel}
-          className="block overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-transform active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+          data-testid={BANNER_TEST_IDS[b.href]}
+          className="block rounded-3xl border border-border bg-card shadow-sm transition-transform active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
         >
-          <div className="relative aspect-video w-full">
+          <div className="relative aspect-video w-full overflow-hidden rounded-3xl">
             <Image
               src={b.image}
               alt=""
@@ -58,7 +64,7 @@ export function HomeHeroBanners() {
                 className={`flex flex-col px-5 py-5 ${
                   b.textAlign === "left"
                     ? "w-[240px] sm:w-[320px] items-start text-left"
-                    : "ml-auto flex flex-col w-[240px] sm:w-[320px] max-w-[70%] items-end text-right"
+                    : "ml-auto flex flex-col w-[240px] sm:w-[320px] max-w-[70%] items-end text-right pr-5"
                 }`}
               >
                 <h2 className="text-xl font-semibold text-white drop-shadow-sm sm:text-2xl">

@@ -1,11 +1,11 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useRef, useEffect, useState } from "react";
 
 const BRAND_LOGO_TWEAKS: Record<
   string,
-  { scale?: number; y?: number; brightness?: number; contrast?: number }
+  { scale?: number; y?: number }
 > = {
   "dolce-gabbana": { scale: 1.55, y: 0 },
   "emperio-armani": { scale: 1.6, y: 1 },
@@ -21,7 +21,25 @@ const DEFAULT_TWEAK = { scale: 1, y: 0 };
 
 export function BrandLogoTile({ slug, name }: BrandLogoTileProps) {
   const [useFallback, setUseFallback] = useState(false);
+  const containerRef = useRef<HTMLSpanElement>(null);
   const { scale = 1, y = 0 } = BRAND_LOGO_TWEAKS[slug] ?? DEFAULT_TWEAK;
+  const hasTweak = scale !== 1 || y !== 0;
+
+  useEffect(() => {
+    if (!hasTweak || useFallback) return;
+    const container = containerRef.current;
+    if (!container) return;
+    const img = container.querySelector("img");
+    if (!img) return;
+    img.style.transform = `translateY(${y}px) scale(${scale})`;
+    img.style.transformOrigin = "center center";
+    img.style.willChange = "transform";
+    return () => {
+      img.style.transform = "";
+      img.style.transformOrigin = "";
+      img.style.willChange = "";
+    };
+  }, [slug, scale, y, hasTweak, useFallback]);
 
   if (useFallback) {
     return (
@@ -32,11 +50,11 @@ export function BrandLogoTile({ slug, name }: BrandLogoTileProps) {
   }
 
   return (
-    <span className="relative flex h-[72px] w-full items-center justify-center px-3 sm:px-4">
-      <span
-        className="relative h-full w-full transform-gpu"
-        style={{ transform: `translateY(${y}px) scale(${scale})` }}
-      >
+    <span
+      ref={containerRef}
+      className="relative flex h-[72px] w-full items-center justify-center px-3 sm:px-4"
+    >
+      <span className="relative h-full w-full">
         <Image
           src={`/brands/${slug}.webp`}
           alt={name}

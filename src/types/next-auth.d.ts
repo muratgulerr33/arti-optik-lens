@@ -4,26 +4,26 @@ import 'next-auth/jwt';
 declare module 'next-auth' {
   interface Session {
     user: {
-      id: string;
-      email: string;
+      id?: string;
+      email?: string;
       name?: string | null;
       image?: string | null;
-      role: 'user' | 'admin';
+      role?: 'user' | 'admin';
     };
   }
 
   interface User {
-    id: string;
-    email: string;
+    id?: string;
+    email?: string;
     name?: string | null;
     image?: string | null;
-    role: 'user' | 'admin';
+    role?: 'user' | 'admin';
   }
 }
 
 declare module 'next-auth/jwt' {
   interface JWT {
-    id: string;
-    role: 'user' | 'admin';
+    id?: string;
+    role?: 'user' | 'admin';
   }
 }

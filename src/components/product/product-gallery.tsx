@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import useEmblaCarousel from "embla-carousel-react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -14,7 +14,16 @@ interface ProductGalleryProps {
 
 export function ProductGallery({ images, productName }: ProductGalleryProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const viewportRef = useRef<HTMLDivElement | null>(null);
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: false });
+
+  const setViewportRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      viewportRef.current = node;
+      emblaRef(node);
+    },
+    [emblaRef]
+  );
 
   // Embla API'den seçili index'i al
   useEffect(() => {
@@ -50,7 +59,7 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
     <div className="space-y-4">
       {/* Mobile: Carousel */}
       <div className="md:hidden">
-        <div className="relative overflow-hidden" ref={emblaRef}>
+        <div className="relative overflow-hidden" ref={setViewportRef}>
           <div className="flex">
             {images.map((img, idx) => (
               <div key={idx} className="min-w-0 flex-shrink-0 w-full">

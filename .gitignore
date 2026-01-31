@@ -51,3 +51,6 @@ masterpack-tools.zip
 tools/seed/input/*.full.json
 tools/seed/input/*.full.csv
 # Sample dosya commit edilebilir: tools/seed/input/v1-seed.sample.json
+
+# Forensics / scratch (do not commit raw dumps)
+docs/forensics/raw-sql/

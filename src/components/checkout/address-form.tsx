@@ -1,24 +1,70 @@
 "use client"
 
+import { useTransition } from "react"
+import { toast } from "sonner"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Button } from "@/components/ui/button"
+import { saveAddress, type SaveAddressData } from "@/app/actions/checkout"
 
-/**
- * V1: Adres formu – defaultValue ile dolu, görsel doluluk için.
- * Validasyon ve Kaydet davranışı sonraki aşamada.
- */
-export function CheckoutAddressForm() {
+export type AddressRecord = {
+  id: string
+  title: string
+  fullName: string
+  phone: string
+  city: string
+  district: string
+  addressLine: string
+} | null
+
+type CheckoutAddressFormProps = {
+  initialData?: AddressRecord
+  onSaved?: (addressId: string) => void
+}
+
+export function CheckoutAddressForm({ initialData, onSaved }: CheckoutAddressFormProps) {
+  const [isPending, startTransition] = useTransition()
+
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    const form = e.currentTarget
+    const formData = new FormData(form)
+    const data: SaveAddressData = {
+      title: (formData.get("title") as string) || (initialData?.title ?? "Ev"),
+      fullName: (formData.get("fullName") as string) || "",
+      phone: (formData.get("phone") as string) || "",
+      city: (formData.get("city") as string) || "",
+      district: (formData.get("district") as string) || "",
+      addressLine: (formData.get("addressLine") as string) || "",
+    }
+    if (!data.fullName?.trim() || !data.phone?.trim() || !data.city?.trim() || !data.district?.trim() || !data.addressLine?.trim()) {
+      toast.error("Tüm adres alanlarını doldurun.")
+      return
+    }
+    startTransition(async () => {
+      const result = await saveAddress(data)
+      if (result.error) {
+        toast.error(result.error)
+        return
+      }
+      if (result.addressId) onSaved?.(result.addressId)
+      toast.success("Adres kaydedildi.")
+    })
+  }
+
   return (
-    <div className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4">
       <h2 className="text-lg font-semibold text-foreground">Teslimat Adresi</h2>
+      <input type="hidden" name="title" value="Ev" />
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2 sm:col-span-2">
           <Label htmlFor="checkout-name">Ad Soyad</Label>
           <Input
             id="checkout-name"
-            name="name"
-            defaultValue="Murat Güler"
-            className="w-full bg-background text-foreground"
+            name="fullName"
+            defaultValue={initialData?.fullName ?? ""}
+            placeholder="Ad Soyad"
+            className="w-full bg-background text-foreground border-input"
             aria-describedby="checkout-name-hint"
           />
           <p id="checkout-name-hint" className="text-xs text-muted-foreground">
@@ -31,8 +77,9 @@ export function CheckoutAddressForm() {
             id="checkout-phone"
             name="phone"
             type="tel"
-            defaultValue="0555 123 45 67"
-            className="w-full bg-background text-foreground"
+            defaultValue={initialData?.phone ?? ""}
+            placeholder="0555 123 45 67"
+            className="w-full bg-background text-foreground border-input"
           />
         </div>
         <div className="space-y-2">
@@ -40,8 +87,9 @@ export function CheckoutAddressForm() {
           <Input
             id="checkout-city"
             name="city"
-            defaultValue="Mersin"
-            className="w-full bg-background text-foreground"
+            defaultValue={initialData?.city ?? ""}
+            placeholder="İl"
+            className="w-full bg-background text-foreground border-input"
           />
         </div>
         <div className="space-y-2 sm:col-span-2">
@@ -49,17 +97,19 @@ export function CheckoutAddressForm() {
           <Input
             id="checkout-district"
             name="district"
-            defaultValue="Mezitli"
-            className="w-full bg-background text-foreground"
+            defaultValue={initialData?.district ?? ""}
+            placeholder="İlçe"
+            className="w-full bg-background text-foreground border-input"
           />
         </div>
         <div className="space-y-2 sm:col-span-2">
           <Label htmlFor="checkout-address">Açık Adres</Label>
           <Input
             id="checkout-address"
-            name="address"
-            defaultValue="Örnek Mah. Örnek Sok. No: 12/3"
-            className="w-full bg-background text-foreground"
+            name="addressLine"
+            defaultValue={initialData?.addressLine ?? ""}
+            placeholder="Mahalle, sokak, bina no, daire"
+            className="w-full bg-background text-foreground border-input"
             aria-describedby="checkout-address-hint"
           />
           <p
@@ -70,6 +120,9 @@ export function CheckoutAddressForm() {
           </p>
         </div>
       </div>
-    </div>
+      <Button type="submit" variant="outline" size="sm" disabled={isPending}>
+        {isPending ? "Kaydediliyor..." : "Kaydet"}
+      </Button>
+    </form>
   )
 }

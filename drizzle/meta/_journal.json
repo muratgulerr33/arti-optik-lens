@@ -8,6 +8,20 @@
       "when": 1769433762760,
       "tag": "0000_futuristic_taskmaster",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1738224000000,
+      "tag": "0003_product_variants_attributes_backup",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1738281600000,
+      "tag": "0004_pg_trgm_search",
+      "breakpoints": true
     }
   ]
 }

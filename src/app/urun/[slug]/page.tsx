@@ -3,6 +3,12 @@ import { Metadata } from 'next';
 import { db } from '@/db/connection';
 import { products, productVariants, brands } from '@/db/schema';
 import { eq } from 'drizzle-orm';
+import { formatPrice } from '@/lib/utils';
+import { ProductGallery } from '@/components/product/product-gallery';
+import { ProductInfo } from '@/components/product/product-info';
+import { ProductSpecs } from '@/components/product/product-specs';
+import { AddToCart } from '@/components/product/add-to-cart';
+import { StickyProductBar } from '@/components/product/sticky-product-bar';
 
 // Force dynamic rendering to prevent build-time DB connection
 export const dynamic = 'force-dynamic';
@@ -11,10 +17,29 @@ interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
-// Ürün detayını getir
-async function getProductBySlug(slug: string) {
+export type ProductVariant = {
+  id: number;
+  price: string;
+  stock: number;
+  stockStatus: string | null;
+  images: unknown;
+  attributes: unknown;
+};
+
+export type ProductDetail = {
+  id: number;
+  name: string;
+  slug: string;
+  description: string | null;
+  gender: string;
+  brand: { id: number; name: string; slug: string };
+  variants: ProductVariant[];
+};
+
+// Ürün + tüm varyantları getir (attributes dahil)
+async function getProductBySlug(slug: string): Promise<ProductDetail | null> {
   try {
-    const product = await db
+    const productRow = await db
       .select({
         id: products.id,
         name: products.name,
@@ -26,33 +51,83 @@ async function getProductBySlug(slug: string) {
           name: brands.name,
           slug: brands.slug,
         },
-        variant: {
-          id: productVariants.id,
-          price: productVariants.price,
-          stock: productVariants.stock,
-          stockStatus: productVariants.stockStatus,
-          images: productVariants.images,
-        },
       })
       .from(products)
       .innerJoin(brands, eq(products.brandId, brands.id))
-      .leftJoin(productVariants, eq(products.id, productVariants.productId))
       .where(eq(products.slug, slug))
       .limit(1);
 
-    if (!product || product.length === 0) {
-      return null;
-    }
+    if (!productRow?.length) return null;
 
-    return product[0];
+    const productId = productRow[0].id;
+    const variantsRows = await db
+      .select({
+        id: productVariants.id,
+        price: productVariants.price,
+        stock: productVariants.stock,
+        stockStatus: productVariants.stockStatus,
+        images: productVariants.images,
+        attributes: productVariants.attributes,
+      })
+      .from(productVariants)
+      .where(eq(productVariants.productId, productId));
+
+    const p = productRow[0];
+    return {
+      id: p.id,
+      name: p.name,
+      slug: p.slug,
+      description: p.description,
+      gender: p.gender,
+      brand: p.brand,
+      variants: variantsRows.map((v) => ({
+        id: v.id,
+        price: String(v.price),
+        stock: v.stock,
+        stockStatus: v.stockStatus,
+        images: v.images,
+        attributes: v.attributes,
+      })),
+    };
   } catch (error) {
-    // DB connection error during build - return null to prevent build failure
     console.error('Database error in getProductBySlug:', error);
-    return null;
+    return getMockProduct(slug);
   }
 }
 
-// Metadata generate (stok durumu ile)
+function getMockProduct(slug: string): ProductDetail {
+  return {
+    id: 0,
+    name: 'Örnek Güneş Gözlüğü',
+    slug,
+    description: 'DB bağlantısı yok; örnek ürün gösteriliyor.',
+    gender: 'unisex',
+    brand: { id: 0, name: 'Marka', slug: 'marka' },
+    variants: [
+      {
+        id: 0,
+        price: '15400.00',
+        stock: 5,
+        stockStatus: 'in_stock',
+        images: ['/next.svg'],
+        attributes: {
+          color_frame: 'Siyah',
+          color_lens: 'Yeşil',
+          size_bridge: '22',
+          size_temple: '150',
+          lens_tech: 'Polarize',
+        },
+      },
+    ],
+  };
+}
+
+function normalizeImages(images: unknown): string[] {
+  if (!images || !Array.isArray(images)) return [];
+  return images.map((img) => (typeof img === 'string' ? img : (img as { src?: string }).src ?? String(img)));
+}
+
+// SEO: generateMetadata
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   try {
     const { slug } = await params;
@@ -65,47 +140,42 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       };
     }
 
-  const stockText = product.variant?.stockStatus === 'out_of_stock' || (product.variant?.stock || 0) === 0
-    ? 'Stokta Yok'
-    : 'Stokta Var';
-  
-  const price = product.variant?.price 
-    ? parseFloat(product.variant.price.toString()).toLocaleString('tr-TR', { 
-        style: 'currency', 
-        currency: 'TRY',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
-      })
-    : 'Fiyat bilgisi yok';
+    const variant = product.variants[0];
+    const stockText =
+      !variant || variant.stockStatus === 'out_of_stock' || (variant.stock || 0) === 0
+        ? 'Stokta Yok'
+        : 'Stokta Var';
 
-  const title = `${product.brand.name} ${product.name} Güneş Gözlüğü — ${stockText} | ARTI OPTİK`;
-  
-  const description = `${product.brand.name} ${product.name} güneş gözlüğü. ${price}. ${stockText}. Ücretsiz kargo ve kolay iade. ARTI OPTİK'te güvenli alışveriş.`;
+    const price =
+      variant?.price != null
+        ? (() => {
+            const p = parseFloat(String(variant.price));
+            const kurus = p >= 100_000 ? Math.round(p) : Math.round(p * 100);
+            return formatPrice(kurus);
+          })()
+        : 'Fiyat bilgisi yok';
 
-  const imageUrl = product.variant?.images && Array.isArray(product.variant.images) && product.variant.images.length > 0
-    ? product.variant.images[0]
-    : undefined;
+    const title = `${product.brand.name} ${product.name} Güneş Gözlüğü — ${stockText} | ARTI OPTİK`;
+    const description = `${product.brand.name} ${product.name} güneş gözlüğü. ${price}. ${stockText}. Ücretsiz kargo ve kolay iade. ARTI OPTİK'te güvenli alışveriş.`;
 
-  return {
-    title,
-    description,
-    openGraph: {
+    const images = variant ? normalizeImages(variant.images) : [];
+    const imageUrl = images[0];
+
+    return {
       title,
       description,
-      images: imageUrl ? [{ url: String(imageUrl) }] : [],
-      type: 'website',
-      ...(imageUrl && {
-        other: {
-          'og:type': 'product',
-        },
-      }),
-    },
-    alternates: {
-      canonical: `https://artioptiklens.com.tr/urun/${slug}`,
-    },
-  };
+      openGraph: {
+        title,
+        description,
+        images: imageUrl ? [{ url: String(imageUrl) }] : [],
+        type: 'website',
+        ...(imageUrl && { other: { 'og:type': 'product' } }),
+      },
+      alternates: {
+        canonical: `https://artioptiklens.com.tr/urun/${slug}`,
+      },
+    };
   } catch (error) {
-    // DB connection error during build - return generic metadata
     console.error('Database error in generateMetadata:', error);
     return {
       title: 'Ürün | ARTI OPTİK',
@@ -116,61 +186,85 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 // Page component
 export default async function ProductPage({ params }: PageProps) {
+  let product: ProductDetail | null = null;
   try {
     const { slug } = await params;
-    const product = await getProductBySlug(slug);
-
-    if (!product) {
-      notFound();
-    }
-
-  const stockText = product.variant?.stockStatus === 'out_of_stock' || (product.variant?.stock || 0) === 0
-    ? 'Stokta Yok'
-    : 'Stokta Var';
-
-  return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-4">{product.name}</h1>
-      <p className="text-lg mb-2">Marka: {product.brand.name}</p>
-      <p className="text-xl font-semibold mb-2">
-        {product.variant?.price 
-          ? parseFloat(product.variant.price.toString()).toLocaleString('tr-TR', { 
-              style: 'currency', 
-              currency: 'TRY',
-              minimumFractionDigits: 0,
-              maximumFractionDigits: 0,
-            })
-          : 'Fiyat bilgisi yok'}
-      </p>
-      <p className={`text-lg mb-4 ${stockText === 'Stokta Yok' ? 'text-red-600' : 'text-green-600'}`}>
-        {stockText}
-      </p>
-      {product.description && (
-        <p className="text-gray-700 mb-4">{product.description}</p>
-      )}
-      {(() => {
-        const images = product.variant?.images;
-        if (images && Array.isArray(images) && images.length > 0) {
-          return (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {images.map((img, idx) => (
-                <img
-                  key={idx}
-                  src={typeof img === 'string' ? img : (img as { src?: string }).src || String(img)}
-                  alt={`${product.name} - Görsel ${idx + 1}`}
-                  className="w-full h-auto rounded"
-                />
-              ))}
-            </div>
-          );
-        }
-        return null;
-      })()}
-    </div>
-  );
+    product = await getProductBySlug(slug);
   } catch (error) {
-    // DB connection error - show not found
     console.error('Database error in ProductPage:', error);
     notFound();
   }
+
+  if (!product) {
+    notFound();
+  }
+
+  const variant = product.variants[0];
+  if (!variant) {
+    notFound();
+  }
+
+  const images = normalizeImages(variant.images);
+  const priceNum = parseFloat(variant.price);
+  // DB'de fiyat bazen Lira (2190) bazen kuruş (219000) olabiliyor; formatPrice her zaman kuruş bekliyor
+  const priceKurus =
+    priceNum >= 100_000 ? Math.round(priceNum) : Math.round(priceNum * 100);
+  const outOfStock = variant.stockStatus === 'out_of_stock' || (variant.stock || 0) === 0;
+  const attributesRecord =
+    variant.attributes && typeof variant.attributes === 'object' && !Array.isArray(variant.attributes)
+      ? (variant.attributes as Record<string, unknown>)
+      : null;
+
+  return (
+    <div>
+      <div className="container mx-auto px-4 pt-4 pb-[calc(96px+env(safe-area-inset-bottom))] xl:pb-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {/* Sol: Galeri (ana resim + thumbnails) */}
+        <div className="min-w-0">
+          {images.length > 0 ? (
+            <ProductGallery images={images} productName={product.name} />
+          ) : (
+            <div className="aspect-[4/5] bg-muted rounded-lg flex items-center justify-center text-muted-foreground">
+              Görsel yok
+            </div>
+          )}
+        </div>
+
+        {/* Sağ: Marka, Başlık, Fiyat, Özellikler, Sepete Ekle */}
+        <div className="space-y-6">
+          <ProductInfo
+            brand={product.brand.name}
+            name={product.name}
+            price={priceKurus}
+            description={product.description}
+          />
+          <ProductSpecs attributes={attributesRecord} />
+          <div className="hidden xl:block">
+            <AddToCart
+              productId={product.id}
+              variantId={variant.id}
+              name={product.name}
+              price={priceKurus}
+              image={images[0] ?? null}
+              slug={product.slug}
+              brand={product.brand.name}
+              disabled={outOfStock}
+            />
+          </div>
+        </div>
+      </div>
+
+      <StickyProductBar
+        productId={product.id}
+        variantId={variant.id}
+        name={product.name}
+        price={priceKurus}
+        image={images[0] ?? null}
+        slug={product.slug}
+        brand={product.brand.name}
+        disabled={outOfStock}
+      />
+      </div>
+    </div>
+  );
 }

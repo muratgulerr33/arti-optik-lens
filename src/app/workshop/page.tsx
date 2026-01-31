@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
+import { cn, formatPrice } from "@/lib/utils";
 
 /**
  * FONT WORKSHOP SAYFASI
@@ -130,10 +130,10 @@ export default function WorkshopPage() {
                 <CardContent className="pt-0">
                   <div className="flex items-baseline justify-between">
                     <span className="font-numbers text-2xl font-bold text-foreground">
-                      2.499 ₺
+                      {formatPrice(2499 * 100)}
                     </span>
                     <span className="font-numbers text-sm text-muted-foreground line-through">
-                      3.299 ₺
+                      {formatPrice(3299 * 100)}
                     </span>
                   </div>
                 </CardContent>

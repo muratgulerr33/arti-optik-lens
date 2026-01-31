@@ -28,6 +28,7 @@ import * as path from 'path';
 import { fileURLToPath } from 'url';
 // eq and sql imports removed - not used
 import * as schemaModule from '../../src/db/schema';
+import { normalizeAttributes } from './lib/normalize-attributes.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -237,8 +238,11 @@ async function importSeed() {
           originalData: item,
         };
         
-        // Attributes hazırla (shape bilgisini ekle)
-        const attributes = item.attributes || {};
+        // Attributes: Türkçe/slug anahtarları İngilizce anlamlı anahtarlara map et; isim/açıklamadan fallback
+        const attributes = normalizeAttributes(item.attributes, {
+          name: productName,
+          description: item.description || '',
+        });
         if (shape) {
           attributes.shape = shape;
         }

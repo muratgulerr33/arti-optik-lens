@@ -68,7 +68,7 @@
     --radius: 0.65rem;
 
     /* Organic UI / Eye Comfort — Warm Paper */
-    --background: oklch(0.975 0.016 95);      /* warm paper, #FAF7EB civarı */
+    --background: oklch(0.975 0.010 95);      /* warm paper, daha nötr */
     --color-background: var(--background);
     --foreground: oklch(0.216 0.006 56.043);  /* stone-900 (#1c1917) */
 
@@ -87,7 +87,7 @@
     --secondary: oklch(0.94 0.012 95);
     --secondary-foreground: oklch(0.216 0.006 56.043);
 
-    --muted: oklch(0.955 0.012 95);
+    --muted: oklch(0.955 0.008 95);
     --muted-foreground: oklch(0.553 0.013 58.071); /* stone-500 (#78716c) */
 
     --accent: oklch(0.97 0.001 106.424);      /* stone-100 */
@@ -100,7 +100,7 @@
     --input: oklch(0.923 0.003 48.717);       /* warm stroke */
     --ring: oklch(0.56 0.235 27.3);           /* primary ile uyumlu */
     --ring-foreground: oklch(0.97 0.008 95);  /* text on ring */
-    --ring-offset: oklch(0.975 0.016 95);     /* background/surface */
+    --ring-offset: oklch(0.975 0.010 95);     /* background/surface */
     --focus-outline: oklch(0.56 0.235 27.3 / 0.4); /* subtle outline for dark mode clarity */
     --hover-overlay: oklch(0 0 0 / 0.05);     /* neutral overlay for hover */
     --pressed-overlay: oklch(0 0 0 / 0.1);    /* stronger overlay for pressed/active */

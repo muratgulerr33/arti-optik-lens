@@ -1,23 +1,33 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
-import { ArrowLeft, X } from "lucide-react"
+import { useEffect, useState, useCallback } from "react"
+import { useSearchParams } from "next/navigation"
+import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { ProductCard } from "@/components/catalog/product-card"
 import { ProductGrid } from "@/components/catalog/product-grid"
+import { PLPToolbar } from "@/components/catalog/plp-toolbar"
+import { ActiveFiltersBar } from "@/components/catalog/active-filters-bar"
 import { EmptyState } from "@/components/empty-state"
+import { SearchInput } from "@/components/search/search-input"
+import { PopularBrands } from "@/components/search/popular-brands"
 
-// Debounce delay (300ms as per plan)
-const DEBOUNCE_MS = 300
+type SearchApiItem = {
+  title: string
+  price: number
+  image: string
+  slug: string
+  brand: string
+}
 
-// TODO: Fetch real data from DB (Prisma/Drizzle)
-const popularBrands: string[] = []
+type SearchApiResponse = {
+  items: SearchApiItem[]
+  fallbackItems?: SearchApiItem[]
+  fallbackCategory?: string | null
+}
 
-// Şekil seçenekleri (same as home page)
 const SHAPES = [
   { label: "Damla", value: "aviator" },
   { label: "Yuvarlak", value: "round" },
@@ -26,124 +36,62 @@ const SHAPES = [
   { label: "Geometrik", value: "geometric" },
 ]
 
-interface SearchResult {
-  title: string
-  price: number
-  image: string
-  slug: string
-  brand: string
+interface SearchClientProps {
+  initialQuery: string
 }
 
-export default function SearchClient() {
-  const router = useRouter()
+export default function SearchClient({ initialQuery }: SearchClientProps) {
   const searchParams = useSearchParams()
+  const q = (searchParams.get("q") ?? searchParams.get("brand") ?? "").trim() || initialQuery
 
-  const initialQ = searchParams.get("q") || ""
-  const [query, setQuery] = useState(initialQ)
-  const [debouncedQuery, setDebouncedQuery] = useState(initialQ)
-  const [results, setResults] = useState<SearchResult[]>([])
-  const [isLoading, setIsLoading] = useState(false)
-  const [searchError, setSearchError] = useState(false)
-  const inputRef = useRef<HTMLInputElement>(null)
-  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const [items, setItems] = useState<SearchApiItem[]>([])
+  const [fallbackItems, setFallbackItems] = useState<SearchApiItem[]>([])
+  const [loading, setLoading] = useState(true)
 
-  // URL -> state senkronu (back/forward ile)
-  useEffect(() => {
-    const q = searchParams.get("q") || ""
-    setQuery(q)
-    setDebouncedQuery(q)
-  }, [searchParams])
-
-  // Auto-focus input on mount
-  useEffect(() => {
-    inputRef.current?.focus()
+  const fetchSearch = useCallback(async (query: string) => {
+    setLoading(true)
+    try {
+      const params = new URLSearchParams()
+      if (query) params.set('q', query)
+      params.set('limit', query ? '100' : '24')
+      const res = await fetch(`/api/search?${params.toString()}`)
+      const data: SearchApiResponse = await res.json()
+      setItems(Array.isArray(data.items) ? data.items : [])
+      setFallbackItems(Array.isArray(data.fallbackItems) ? data.fallbackItems : [])
+    } catch {
+      setItems([])
+      setFallbackItems([])
+    } finally {
+      setLoading(false)
+    }
   }, [])
 
-  // 300ms debounce ile URL güncelle
   useEffect(() => {
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current)
-    }
+    fetchSearch(q)
+  }, [q, fetchSearch])
 
-    debounceTimerRef.current = setTimeout(() => {
-      setDebouncedQuery(query)
+  const hasQuery = q.length >= 2
+  const showSuggestions = !hasQuery
 
-      const params = new URLSearchParams(searchParams.toString())
-      const q = query.trim()
-
-      if (!q) {
-        params.delete("q")
-      } else {
-        params.set("q", q)
-      }
-
-      router.replace(`/search?${params.toString()}`, { scroll: false })
-    }, DEBOUNCE_MS)
-
-    return () => {
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current)
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query])
-
-  // Fetch search results when debouncedQuery changes
-  useEffect(() => {
-    const fetchResults = async () => {
-      const trimmedQuery = debouncedQuery.trim()
-
-      // Don't search if query is too short (as per plan: q.length < 2)
-      if (!trimmedQuery || trimmedQuery.length < 2) {
-        setResults([])
-        setIsLoading(false)
-        return
-      }
-
-      setIsLoading(true)
-      setSearchError(false)
-      try {
-        const response = await fetch(
-          `/api/search?q=${encodeURIComponent(trimmedQuery)}&limit=20`
-        )
-        if (!response.ok) {
-          throw new Error("Search failed")
-        }
-        const data = await response.json()
-        setResults(data.items || [])
-      } catch (error) {
-        console.error("Search error:", error)
-        setResults([])
-        setSearchError(true)
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    fetchResults()
-  }, [debouncedQuery])
-
-  // Handle input change
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setQuery(e.target.value)
+  const minPrice = searchParams.get("minPrice")
+  const maxPrice = searchParams.get("maxPrice")
+  const sort = searchParams.get("sort") || "newest"
+  let filteredResults = [...items]
+  if (minPrice || maxPrice) {
+    const min = minPrice ? parseInt(minPrice, 10) : 0
+    const max = maxPrice ? parseInt(maxPrice, 10) : Infinity
+    filteredResults = filteredResults.filter((p) => p.price >= min && p.price <= max)
+  }
+  if (sort === "price_asc") {
+    filteredResults.sort((a, b) => a.price - b.price)
+  } else if (sort === "price_desc") {
+    filteredResults.sort((a, b) => b.price - a.price)
   }
 
-  // Handle clear button
-  const handleClear = () => {
-    setQuery("")
-    setDebouncedQuery("")
-    setResults([])
-    setSearchError(false)
-    router.replace("/search", { scroll: false })
-    inputRef.current?.focus()
-  }
-
-  const hasQuery = debouncedQuery.trim().length >= 2
-  const showSuggestions = !hasQuery && !isLoading
+  const isEmptyWithQuery = hasQuery && !loading && items.length === 0
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Top Bar */}
       <div className="sticky top-0 z-10 flex h-16 items-center gap-2 border-b bg-background/80 backdrop-blur-md px-4">
         <Button
           variant="ghost"
@@ -156,84 +104,28 @@ export default function SearchClient() {
             <span className="sr-only">Geri</span>
           </Link>
         </Button>
-        <div className="relative flex-1">
-          <Input
-            ref={inputRef}
-            type="text"
-            placeholder="Marka veya model ara…"
-            value={query}
-            onChange={handleInputChange}
-            className="h-11 pr-10"
-            autoFocus
-          />
-          {query && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute right-1 top-1/2 h-9 w-9 -translate-y-1/2"
-              onClick={handleClear}
-              aria-label="Temizle"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          )}
-        </div>
+        <SearchInput />
       </div>
 
-      {/* Content Area */}
       <div className="container mx-auto max-w-6xl px-4 py-8">
-        {isLoading && (
-          <div className="text-center text-muted-foreground py-8">
-            Aranıyor...
+        {loading && (
+          <div className="text-muted-foreground text-center py-8">
+            Yükleniyor...
           </div>
         )}
 
-        {!isLoading && hasQuery && results.length === 0 && (
-          <div className="space-y-8">
+        {!loading && isEmptyWithQuery && (
+          <div className="space-y-8" data-testid="search-empty-state">
             <div className="text-center text-muted-foreground py-8">
-              {searchError ? (
-                <EmptyState variant="db-error" className="py-0 text-center text-muted-foreground" />
-              ) : (
-                <EmptyState
-                  variant="empty"
-                  message={`"${debouncedQuery}" için sonuç bulunamadı.`}
-                  subMessage="Farklı bir arama terimi deneyin."
-                  className="py-0 text-center text-muted-foreground"
-                />
-              )}
+              <EmptyState
+                variant="empty"
+                message={`"${q}" için sonuç bulunamadı.`}
+                subMessage="Farklı bir arama terimi deneyin."
+                className="py-0 text-center text-muted-foreground"
+              />
             </div>
-
-            {/* Show suggestions even when no results */}
             <div className="space-y-8">
-              {/* Popüler Markalar */}
-              <section>
-                <h2 className="mb-6 text-2xl font-semibold text-foreground">
-                  Popüler Markalar
-                </h2>
-                <div className="flex gap-2 overflow-x-auto whitespace-nowrap px-4 pr-8 py-2 scrollbar-hide snap-x snap-proximity scroll-px-4">
-                  {!popularBrands || popularBrands.length === 0 ? (
-                    <p className="text-muted-foreground">Henüz marka listesi yok.</p>
-                  ) : (
-                    popularBrands.map((brand) => (
-                      <Badge
-                        key={brand}
-                        variant="outline"
-                        asChild
-                        className="min-h-[44px] shrink-0 cursor-pointer px-6 py-2 text-sm snap-start"
-                      >
-                        <Link
-                          href={`/search?q=${encodeURIComponent(brand)}`}
-                          aria-label={`${brand} markası için ara`}
-                        >
-                          {brand}
-                        </Link>
-                      </Badge>
-                    ))
-                  )}
-                </div>
-              </section>
-
-              {/* Şekle Göre */}
+              <PopularBrands />
               <section>
                 <h2 className="mb-6 text-2xl font-semibold text-foreground">
                   Şekle Göre
@@ -260,13 +152,61 @@ export default function SearchClient() {
           </div>
         )}
 
-        {!isLoading && hasQuery && results.length > 0 && (
-          <div className="space-y-4">
-            <div className="text-sm text-muted-foreground">
-              &quot;{debouncedQuery}&quot; için {results.length} sonuç bulundu
+        {!loading && hasQuery && items.length > 0 && (
+          <div className="space-y-0">
+            <PLPToolbar totalCount={filteredResults.length} />
+            <ActiveFiltersBar />
+            <div className="space-y-4 pt-4">
+              <div className="text-sm text-muted-foreground">
+                &quot;{q}&quot; — {filteredResults.length} sonuç
+              </div>
+              <ProductGrid>
+                {filteredResults.map((item) => (
+                  <ProductCard
+                    key={item.slug}
+                    title={item.title}
+                    price={item.price}
+                    image={item.image}
+                    slug={item.slug}
+                    brand={item.brand}
+                  />
+                ))}
+              </ProductGrid>
             </div>
+          </div>
+        )}
+
+        {!loading && !hasQuery && items.length > 0 && (
+          <div className="space-y-0">
+            <PLPToolbar totalCount={filteredResults.length} />
+            <ActiveFiltersBar />
+            <div className="space-y-4 pt-4">
+              <div className="text-sm text-muted-foreground">
+                Güneş gözlükleri — {filteredResults.length} ürün
+              </div>
+              <ProductGrid>
+                {filteredResults.map((item) => (
+                  <ProductCard
+                    key={item.slug}
+                    title={item.title}
+                    price={item.price}
+                    image={item.image}
+                    slug={item.slug}
+                    brand={item.brand}
+                  />
+                ))}
+              </ProductGrid>
+            </div>
+          </div>
+        )}
+
+        {!loading && hasQuery && items.length > 0 && fallbackItems.length > 0 && (
+          <section className="mt-10">
+            <h2 className="mb-6 text-2xl font-semibold text-foreground">
+              Bunlar hoşuna gidebilir
+            </h2>
             <ProductGrid>
-              {results.map((item) => (
+              {fallbackItems.slice(0, 8).map((item) => (
                 <ProductCard
                   key={item.slug}
                   title={item.title}
@@ -277,51 +217,12 @@ export default function SearchClient() {
                 />
               ))}
             </ProductGrid>
-          </div>
+          </section>
         )}
 
-        {showSuggestions && (
+        {!loading && showSuggestions && (
           <div className="space-y-10">
-            {/* Popüler Markalar */}
-            <section>
-              <h2 className="mb-6 text-2xl font-semibold text-foreground">
-                Popüler Markalar
-              </h2>
-              <div className="flex gap-2 overflow-x-auto whitespace-nowrap px-4 pr-8 py-2 scrollbar-hide snap-x snap-proximity scroll-px-4">
-                {!popularBrands || popularBrands.length === 0 ? (
-                  <p className="text-muted-foreground">Henüz marka listesi yok.</p>
-                ) : (
-                  <>
-                    {popularBrands.map((brand) => (
-                      <Badge
-                        key={brand}
-                        variant="outline"
-                        asChild
-                        className="min-h-[44px] shrink-0 cursor-pointer px-6 py-2 text-sm snap-start"
-                      >
-                        <Link
-                          href={`/search?q=${encodeURIComponent(brand)}`}
-                          aria-label={`${brand} markası için ara`}
-                        >
-                          {brand}
-                        </Link>
-                      </Badge>
-                    ))}
-                    <Badge
-                      variant="outline"
-                      asChild
-                      className="min-h-[44px] shrink-0 cursor-pointer px-6 py-2 text-sm snap-start bg-transparent border-primary text-primary hover:bg-accent/40"
-                    >
-                      <Link href="/search" aria-label="Tüm markaları görüntüle">
-                        Tümü
-                      </Link>
-                    </Badge>
-                  </>
-                )}
-              </div>
-            </section>
-
-            {/* Şekle Göre */}
+            <PopularBrands />
             <section>
               <h2 className="mb-6 text-2xl font-semibold text-foreground">
                 Şekle Göre

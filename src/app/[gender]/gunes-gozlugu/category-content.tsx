@@ -15,9 +15,16 @@ export type PLPProduct = {
   brand: string
 }
 
-function capitalizeGender(gender: string): string {
-  return gender.charAt(0).toUpperCase() + gender.slice(1).toLowerCase()
+const genderLabelMap: Record<string, string> = {
+  kadin: "Kadın",
+  women: "Kadın",
+  erkek: "Erkek",
+  men: "Erkek",
+  unisex: "Unisex",
+  kids: "Çocuk",
 }
+const getGenderLabel = (gender: string) => genderLabelMap[gender?.toLowerCase() ?? ""] ?? gender
+const categoryLabel = "Güneş Gözlükleri"
 
 export function CategoryContent({
   gender,
@@ -29,10 +36,10 @@ export function CategoryContent({
   dbError?: boolean
 }) {
   const searchParams = useSearchParams()
-  const capitalizedGender = capitalizeGender(gender)
+  const genderLabel = getGenderLabel(gender)
 
   // Client-side filter by URL (minPrice/maxPrice in kuruş)
-  let filteredProducts = initialProducts
+  let filteredProducts = [...initialProducts]
 
   const minPrice = searchParams.get("minPrice")
   const maxPrice = searchParams.get("maxPrice")
@@ -49,20 +56,31 @@ export function CategoryContent({
     // V1: no per-variant stock in PLP list; filter is no-op for now
   }
 
+  // Sıralama (sort parametresi)
+  const sort = searchParams.get("sort") || "newest"
+  if (sort === "price_asc") {
+    filteredProducts.sort((a, b) => a.price - b.price)
+  } else if (sort === "price_desc") {
+    filteredProducts.sort((a, b) => b.price - a.price)
+  }
+  // newest: sunucudan gelen sıra (değiştirme)
+
   return (
     <>
       <PLPToolbar totalCount={filteredProducts.length} />
       <ActiveFiltersBar />
       <div className="container mx-auto px-4 py-8">
         <h1 className="mb-8 text-3xl font-semibold text-foreground">
-          {capitalizedGender} Güneş Gözlükleri
+          {genderLabel} {categoryLabel}
         </h1>
 
         {!filteredProducts || filteredProducts.length === 0 ? (
-          <EmptyState
-            variant={dbError ? "db-error" : "empty"}
-            message={dbError ? undefined : "Bu kategoride henüz ürün yok."}
-          />
+          <div data-testid="catalog-empty-state">
+            <EmptyState
+              variant={dbError ? "db-error" : "empty"}
+              message={dbError ? undefined : "Bu kategoride henüz ürün yok."}
+            />
+          </div>
         ) : (
           <ProductGrid>
             {filteredProducts.map((product) => (

@@ -7,6 +7,7 @@ import { relations } from 'drizzle-orm';
 // ------------------------------------------------------------------
 
 export const roleEnum = pgEnum('role', ['user', 'admin']);
+export const orderStatusEnum = pgEnum('order_status', ['pending', 'paid', 'shipped']);
 
 export const users = pgTable('users', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -169,6 +170,13 @@ export const productVariants = pgTable('product_variants', {
   priceIdx: index('variant_price_idx').on(t.price),
 }));
 
+// Backup table for PR4 attributes cleanup rollback (çöp key cleanup)
+export const productVariantsAttributesBackup = pgTable('product_variants_attributes_backup', {
+  variantId: integer('variant_id').primaryKey().references(() => productVariants.id, { onDelete: 'cascade' }),
+  attributesBefore: jsonb('attributes_before').notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
 // ------------------------------------------------------------------
 // İLİŞKİLER (RELATIONS)
 // ------------------------------------------------------------------
@@ -196,6 +204,116 @@ export const productsRelations = relations(products, ({ one, many }) => ({
 export const variantsRelations = relations(productVariants, ({ one }) => ({
   product: one(products, {
     fields: [productVariants.productId],
+    references: [products.id],
+  }),
+}));
+
+// ------------------------------------------------------------------
+// CHECKOUT: ADDRESSES, ORDERS, ORDER ITEMS
+// ------------------------------------------------------------------
+
+export const addresses = pgTable('addresses', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  title: text('title').notNull(), // 'Ev' | 'İş'
+  fullName: text('full_name').notNull(),
+  phone: text('phone').notNull(),
+  city: text('city').notNull(),
+  district: text('district').notNull(),
+  addressLine: text('address_line').notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export const orders = pgTable('orders', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  addressId: uuid('address_id')
+    .notNull()
+    .references(() => addresses.id, { onDelete: 'restrict' }),
+  totalAmount: integer('total_amount').notNull(), // kuruş
+  status: orderStatusEnum('status').default('pending').notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+export const orderItems = pgTable('order_items', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  orderId: uuid('order_id')
+    .notNull()
+    .references(() => orders.id, { onDelete: 'cascade' }),
+  productId: integer('product_id')
+    .notNull()
+    .references(() => products.id, { onDelete: 'restrict' }),
+  quantity: integer('quantity').notNull(),
+  price: integer('price').notNull(), // o anki fiyat (kuruş)
+});
+
+// Relations: User -> Many Addresses, User -> Many Orders
+// Order -> One User, One Address, Many OrderItems
+// OrderItem -> One Order, One Product
+
+export const addressesRelations = relations(addresses, ({ one }) => ({
+  user: one(users, {
+    fields: [addresses.userId],
+    references: [users.id],
+  }),
+}));
+
+export const ordersRelations = relations(orders, ({ one, many }) => ({
+  user: one(users, {
+    fields: [orders.userId],
+    references: [users.id],
+  }),
+  address: one(addresses, {
+    fields: [orders.addressId],
+    references: [addresses.id],
+  }),
+  items: many(orderItems),
+}));
+
+export const orderItemsRelations = relations(orderItems, ({ one }) => ({
+  order: one(orders, {
+    fields: [orderItems.orderId],
+    references: [orders.id],
+  }),
+  product: one(products, {
+    fields: [orderItems.productId],
+    references: [products.id],
+  }),
+}));
+
+// ------------------------------------------------------------------
+// WISHLIST / FAVORITES
+// ------------------------------------------------------------------
+
+export const wishlistItems = pgTable(
+  'wishlist_items',
+  {
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    productId: integer('product_id')
+      .notNull()
+      .references(() => products.id, { onDelete: 'cascade' }),
+    createdAt: timestamp('created_at').defaultNow(),
+  },
+  (t) => ({
+    pk: primaryKey({ columns: [t.userId, t.productId] }),
+    userIdx: index('wishlist_user_idx').on(t.userId),
+  })
+);
+
+export const wishlistItemsRelations = relations(wishlistItems, ({ one }) => ({
+  user: one(users, {
+    fields: [wishlistItems.userId],
+    references: [users.id],
+  }),
+  product: one(products, {
+    fields: [wishlistItems.productId],
     references: [products.id],
   }),
 }));

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Minus, Plus, Trash2 } from "lucide-react";
+import { Minus, Plus, Trash2, ShoppingBag } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -12,16 +12,7 @@ import {
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { useCartStore, type CartItem } from "@/store/cart-store";
-import { cn } from "@/lib/utils";
-
-function formatPrice(kurus: number): string {
-  return (kurus / 100).toLocaleString("tr-TR", {
-    style: "currency",
-    currency: "TRY",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  });
-}
+import { cn, formatPrice } from "@/lib/utils";
 
 function CartRow({ item }: { item: CartItem }) {
   const updateQuantity = useCartStore((s) => s.updateQuantity);
@@ -87,17 +78,18 @@ export function CartSheet() {
 
   return (
     <Sheet open={cartOpen} onOpenChange={(open) => !open && closeCart()}>
-      <SheetContent side="right" className="flex flex-col w-full sm:max-w-md">
+      <SheetContent side="right" className="flex flex-col w-full sm:max-w-md px-6 py-6 sm:px-8" data-testid="cart-drawer">
         <SheetHeader>
           <SheetTitle>
             Sepetim ({totalQty} {totalQty === 1 ? "Ürün" : "Ürün"})
           </SheetTitle>
         </SheetHeader>
-        <div className="flex-1 overflow-y-auto py-4 -mx-4 px-4">
+        <div className="flex-1 overflow-y-auto py-4">
           {items.length === 0 ? (
-            <p className="text-muted-foreground text-sm text-center py-8">
-              Sepetiniz boş.
-            </p>
+            <div className="flex flex-col items-center justify-center py-12 gap-3 text-muted-foreground">
+              <ShoppingBag className="h-12 w-12" aria-hidden />
+              <p className="text-sm font-medium">Sepetiniz Boş</p>
+            </div>
           ) : (
             <div className={cn("divide-y divide-border")}>
               {items.map((item) => (

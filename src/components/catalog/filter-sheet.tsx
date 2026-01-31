@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useRouter, useSearchParams, usePathname } from "next/navigation"
 import { X } from "lucide-react"
 import {
   Sheet,
@@ -21,8 +21,11 @@ interface FilterSheetProps {
   onOpenChange: (open: boolean) => void
 }
 
+const CATEGORY_PATH_REGEX = /^\/(kadin|erkek|unisex)\/gunes-gozlugu\/?$/
+
 export function FilterSheet({ open, onOpenChange }: FilterSheetProps) {
   const router = useRouter()
+  const pathname = usePathname()
   const searchParams = useSearchParams()
 
   // Initialize from URL params
@@ -87,7 +90,15 @@ export function FilterSheet({ open, onOpenChange }: FilterSheetProps) {
       params.delete("inStock")
     }
 
-    router.push(`?${params.toString()}`, { scroll: false })
+    const isCategoryPage = CATEGORY_PATH_REGEX.test(pathname ?? "")
+    if (isCategoryPage && gender.length > 0) {
+      // Kategori sayfasında cinsiyet seçilince o cinsiyetin sayfasına git (diğer filtreler korunur)
+      params.delete("gender")
+      const query = params.toString()
+      router.push(`/${gender[0]}/gunes-gozlugu${query ? `?${query}` : ""}`, { scroll: false })
+    } else {
+      router.push(`?${params.toString()}`, { scroll: false })
+    }
     onOpenChange(false)
   }
 
@@ -153,7 +164,7 @@ export function FilterSheet({ open, onOpenChange }: FilterSheetProps) {
 
           {/* Price Filter */}
           <div className="space-y-3">
-            <Label className="text-base font-semibold">Fiyat (₺)</Label>
+            <Label className="text-base font-semibold">Fiyat (TL)</Label>
             <div className="flex items-center gap-2">
               <Input
                 type="number"

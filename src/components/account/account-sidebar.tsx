@@ -7,9 +7,9 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
 const menuItems = [
-  { label: "Profilim", href: "/hesabim" },
-  { label: "Siparişlerim", href: "/hesabim/siparisler" },
-  { label: "Adreslerim", href: "/hesabim/adresler" },
+  { label: "Profilim", href: "/account" },
+  { label: "Siparişlerim", href: "/account/siparisler" },
+  { label: "Adreslerim", href: "/account/adresler" },
 ]
 
 const linkClass =
@@ -27,8 +27,8 @@ export function AccountSidebar() {
       >
         {menuItems.map((item) => {
           const isActive =
-            item.href === "/hesabim"
-              ? pathname === "/hesabim"
+            item.href === "/account"
+              ? pathname === "/account"
               : pathname === item.href
           return (
             <Link

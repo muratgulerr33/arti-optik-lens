@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Check } from "lucide-react";
+import { Check, ShoppingBag } from "lucide-react";
 import { useCartStore } from "@/store/cart-store";
 
 export interface AddToCartItemProps {
@@ -18,6 +18,8 @@ export interface AddToCartItemProps {
 
 interface AddToCartProps extends AddToCartItemProps {
   disabled?: boolean;
+  className?: string;
+  showBagIcon?: boolean;
 }
 
 export function AddToCart({
@@ -29,6 +31,8 @@ export function AddToCart({
   slug,
   brand,
   disabled = false,
+  className,
+  showBagIcon = false,
 }: AddToCartProps) {
   const [isAdded, setIsAdded] = useState(false);
   const addItem = useCartStore((s) => s.addItem);
@@ -56,13 +60,18 @@ export function AddToCart({
     <Button
       onClick={handleAddToCart}
       disabled={disabled || isAdded}
-      className="w-full h-14 text-lg font-semibold bg-foreground text-background hover:bg-foreground/90"
+      className={className ?? "w-full h-14 text-lg font-semibold bg-foreground text-background hover:bg-foreground/90"}
       size="lg"
     >
       {isAdded ? (
         <>
           <Check className="mr-2 h-5 w-5" />
           Eklendi!
+        </>
+      ) : showBagIcon ? (
+        <>
+          <ShoppingBag className="mr-2 h-4 w-4" />
+          Sepete Ekle
         </>
       ) : (
         "Sepete Ekle"

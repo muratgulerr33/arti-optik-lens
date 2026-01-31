@@ -17,8 +17,8 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Protected routes - require login (hesabim, checkout)
-  if (pathname.startsWith('/hesabim')) {
+  // Protected routes - require login (account, checkout)
+  if (pathname.startsWith('/account')) {
     if (!token) {
       return NextResponse.redirect(new URL('/auth/login', request.url));
     }
@@ -36,7 +36,7 @@ export async function middleware(request: NextRequest) {
   if (pathname.startsWith('/auth')) {
     if (token) {
       const callbackUrl = request.nextUrl.searchParams.get('callbackUrl');
-      const redirectTo = callbackUrl ?? '/hesabim';
+      const redirectTo = callbackUrl ?? '/account';
       return NextResponse.redirect(new URL(redirectTo, request.url));
     }
   }
@@ -47,7 +47,7 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     '/admin/:path*',
-    '/hesabim/:path*',
+    '/account/:path*',
     '/checkout/:path*',
     '/auth/:path*',
   ],

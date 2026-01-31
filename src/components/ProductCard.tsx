@@ -17,8 +17,8 @@ export default function Navbar() {
           </SheetTrigger>
           <SheetContent side="left">
             <nav className="flex flex-col gap-4 mt-8">
-              <Link href="/gunes-gozlugu/kadin" className="text-lg font-medium">KADIN</Link>
-              <Link href="/gunes-gozlugu/erkek" className="text-lg font-medium">ERKEK</Link>
+              <Link href="/kadin/gunes-gozlugu" className="text-lg font-medium">Kadın</Link>
+              <Link href="/erkek/gunes-gozlugu" className="text-lg font-medium">Erkek</Link>
               <Link href="/koleksiyonlar" className="text-lg font-medium">KOLEKSİYONLAR</Link>
             </nav>
           </SheetContent>
@@ -33,11 +33,11 @@ export default function Navbar() {
 
         {/* MASAÜSTÜ MENÜ */}
         <nav className="hidden md:flex items-center gap-8 text-sm font-medium">
-          <Link href="/gunes-gozlugu/kadin" className="tracking-widest hover:text-primary transition-colors">
-            KADIN
+          <Link href="/kadin/gunes-gozlugu" className="tracking-widest hover:text-primary transition-colors">
+            Kadın
           </Link>
-          <Link href="/gunes-gozlugu/erkek" className="tracking-widest hover:text-primary transition-colors">
-            ERKEK
+          <Link href="/erkek/gunes-gozlugu" className="tracking-widest hover:text-primary transition-colors">
+            Erkek
           </Link>
           <Link href="/koleksiyonlar" className="tracking-widest hover:text-primary transition-colors">
             KOLEKSİYONLAR

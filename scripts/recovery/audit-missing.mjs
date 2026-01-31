@@ -28,7 +28,7 @@ function uniq(arr) {
   return [...new Set(arr)];
 }
 
-/** IGNORE (generated) — bunları must recover'a sokma */
+/** IGNORE (generated + wishlist) — bunları must recover'a sokma */
 function isIgnore(pathStr) {
   if (pathStr === ".DS_Store") return true;
   if (pathStr.startsWith("node_modules/") || pathStr === "node_modules") return true;
@@ -36,6 +36,12 @@ function isIgnore(pathStr) {
   if (pathStr.startsWith("test-results/") || pathStr.startsWith("playwright-report/")) return true;
   if (pathStr.startsWith("coverage/")) return true;
   if (pathStr.startsWith("docs/forensics/screens/")) return true;
+  // Wishlist backup'ta yoktu — audit'te IGNORE
+  if (pathStr.includes("/wishlist/") || pathStr.includes("\\wishlist\\")) return true;
+  if (pathStr.includes("/favorites/") || pathStr.includes("\\favorites\\")) return true;
+  if (pathStr.startsWith("src/app/hesabim/wishlist/")) return true;
+  if (pathStr.startsWith("src/app/actions/wishlist.")) return true;
+  if (pathStr.includes("/api/") && pathStr.includes("wishlist")) return true;
   return false;
 }
 

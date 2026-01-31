@@ -74,3 +74,36 @@ restored=0 unresolved=0
 WROTE: /Users/apple/dev/arti-optik-next/docs/recovery/RESTORE_2026-01-31T22-31-33.md
 restored=0 unresolved=0
 ```
+
+---
+
+## PHASE 3 — Hesabım route (bundle)
+
+**git checkout bundle/chore-track-core -- src/app/hesabim/layout.tsx page.tsx adresler/page.tsx siparisler/page.tsx**
+```
+(no output — files already matched bundle)
+```
+Working tree clean after checkout; no commit needed.
+
+---
+
+## PHASE 4 — next/image example.com
+
+next.config.ts zaten `images.remotePatterns` içinde example.com (https, pathname /**) tanımlı. Değişiklik yok.
+
+---
+
+## PHASE 5 — Playwright config TS → MJS
+
+**playwright.config.ts kaldırıldı, playwright.config.mjs oluşturuldu**
+```
+git add playwright.config.mjs
+git commit -m "chore(e2e): move playwright config to mjs"
+git push
+```
+
+---
+
+## FINAL — Kanıt
+
+**docs/recovery/FINAL_STATUS.md** oluşturuldu: branch, HEAD sha, AUDIT sonucu (missing count), build sonucu, fixed items listesi.

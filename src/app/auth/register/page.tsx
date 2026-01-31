@@ -2,7 +2,6 @@
 
 import { Suspense, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { AuthCard } from "@/components/auth/auth-card"
 import { Card } from "@/components/ui/card"
 
 /**

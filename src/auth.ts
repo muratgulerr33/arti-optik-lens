@@ -3,18 +3,20 @@ import { DrizzleAdapter } from '@auth/drizzle-adapter';
 import Credentials from 'next-auth/providers/credentials';
 import { getDbForAdapter } from '@/db/connection';
 import { users, accounts, sessions, verificationTokens } from '@/db/schema';
+import type { PgAdapterSchema } from '@/types/adapter-schema';
 import bcrypt from 'bcryptjs';
 import { eq } from 'drizzle-orm';
 
+const adapterSchema = {
+  usersTable: users,
+  accountsTable: accounts,
+  sessionsTable: sessions,
+  verificationTokensTable: verificationTokens,
+} as unknown as PgAdapterSchema;
+
 export const { handlers, signIn, signOut, auth } = NextAuth({
   // Use getDbForAdapter() so adapter receives real Drizzle instance (Proxy fails is(db, PgDatabase))
-  // Cast to satisfy NextAuth Adapter type vs custom user schema (role) mismatch
-  adapter: DrizzleAdapter(getDbForAdapter(), {
-    usersTable: users as any,
-    accountsTable: accounts as any,
-    sessionsTable: sessions as any,
-    verificationTokensTable: verificationTokens as any,
-  }) as any,
+  adapter: DrizzleAdapter(getDbForAdapter(), adapterSchema),
   providers: [
     Credentials({
       credentials: {
@@ -60,18 +62,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   ],
   callbacks: {
     async jwt({ token, user }) {
-      // On login, add user role and id to token
-      if (user) {
-        token.id = user.id;
-        token.role = user.role;
-      }
+      if (user?.id) token.id = user.id;
+      if (user?.role) token.role = user.role;
       return token;
     },
     async session({ session, token }) {
-      // Add role and id to session from token
       if (session.user) {
-        session.user.id = token.id as string;
-        session.user.role = token.role as 'user' | 'admin';
+        if (token.id) session.user.id = token.id;
+        if (token.role) session.user.role = token.role;
       }
       return session;
     },

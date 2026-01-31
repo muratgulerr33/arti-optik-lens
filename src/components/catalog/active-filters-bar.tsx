@@ -3,7 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation"
 import { X } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
-import { cn } from "@/lib/utils"
+import { cn, formatPrice } from "@/lib/utils"
 
 export function ActiveFiltersBar() {
   const router = useRouter()
@@ -16,13 +16,54 @@ export function ActiveFiltersBar() {
   if (gender) {
     const genderLabels: Record<string, string> = {
       kadin: "Kadın",
+      women: "Kadın",
       erkek: "Erkek",
+      men: "Erkek",
       unisex: "Unisex",
+      kids: "Çocuk",
     }
     activeFilters.push({
       key: "gender",
-      label: genderLabels[gender] || gender,
+      label: genderLabels[gender.toLowerCase()] ?? gender,
       value: gender,
+    })
+  }
+
+  // Attribute filters (backend SQL'de uygulanıyor)
+  const shape = searchParams.get("shape")
+  if (shape) {
+    activeFilters.push({ key: "shape", label: `Şekil: ${shape}`, value: shape })
+  }
+  const colorFrame = searchParams.get("color_frame")
+  if (colorFrame) {
+    activeFilters.push({
+      key: "color_frame",
+      label: `Çerçeve: ${colorFrame}`,
+      value: colorFrame,
+    })
+  }
+  const material = searchParams.get("material")
+  if (material) {
+    activeFilters.push({
+      key: "material",
+      label: `Materyal: ${material}`,
+      value: material,
+    })
+  }
+  const colorLens = searchParams.get("color_lens")
+  if (colorLens) {
+    activeFilters.push({
+      key: "color_lens",
+      label: `Cam: ${colorLens}`,
+      value: colorLens,
+    })
+  }
+  const modelCode = searchParams.get("model_code")
+  if (modelCode) {
+    activeFilters.push({
+      key: "model_code",
+      label: `Model: ${modelCode}`,
+      value: modelCode,
     })
   }
 
@@ -30,8 +71,8 @@ export function ActiveFiltersBar() {
   const minPrice = searchParams.get("minPrice")
   const maxPrice = searchParams.get("maxPrice")
   if (minPrice || maxPrice) {
-    const min = minPrice ? `${parseInt(minPrice) / 100}₺` : ""
-    const max = maxPrice ? `${parseInt(maxPrice) / 100}₺` : ""
+    const min = minPrice ? formatPrice(parseInt(minPrice, 10)) : ""
+    const max = maxPrice ? formatPrice(parseInt(maxPrice, 10)) : ""
     activeFilters.push({
       key: "price",
       label: `${min}${min && max ? "–" : ""}${max}`,

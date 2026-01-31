@@ -1,71 +1,83 @@
 import { Suspense } from "react"
 import { CategoryContent } from "./category-content"
-import { db } from "@/db/connection"
-import { products, productVariants, brands } from "@/db/schema"
-import { asc, eq } from "drizzle-orm"
+import { getProductsByCategory, type ProductFilters } from "@/lib/api/products"
 
 export const dynamic = "force-dynamic"
 
 const genderMap = { kadin: "kadin", erkek: "erkek", unisex: "unisex" } as const
+const genderLabelMap: Record<string, string> = {
+  kadin: "Kadın",
+  women: "Kadın",
+  erkek: "Erkek",
+  men: "Erkek",
+  unisex: "Unisex",
+  kids: "Çocuk",
+}
+const getGenderLabel = (gender: string) =>
+  genderLabelMap[gender?.toLowerCase() ?? ""] ?? gender
+const categoryLabel = "Güneş Gözlükleri"
 type GenderSlug = keyof typeof genderMap
 
 interface PageProps {
   params: Promise<{ gender: string }>
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }
 
-async function getProductsByGender(gender: string): Promise<{
-  products: { title: string; price: number; image: string; slug: string; brand: string }[]
-  dbError: boolean
-}> {
-  try {
-    const dbGender = genderMap[gender.toLowerCase() as GenderSlug] ?? "unisex"
-    const rows = await db
-      .select({
-        pId: products.id,
-        name: products.name,
-        slug: products.slug,
-        brandName: brands.name,
-        variantPrice: productVariants.price,
-        variantImages: productVariants.images,
-      })
-      .from(products)
-      .innerJoin(brands, eq(products.brandId, brands.id))
-      .leftJoin(productVariants, eq(products.id, productVariants.productId))
-      .where(eq(products.gender, dbGender))
-      .orderBy(asc(products.id))
-      .limit(500)
-    const seen = new Set<number>()
-    const list: typeof rows = []
-    for (const r of rows) {
-      if (seen.has(r.pId)) continue
-      seen.add(r.pId)
-      list.push(r)
-    }
-    const productsList = list.map((r) => {
-      const imgs = Array.isArray(r.variantImages) ? r.variantImages : []
-      const firstImg = imgs[0]
-      const image =
-        typeof firstImg === "string"
-          ? firstImg
-          : (firstImg as { src?: string })?.src ?? "/placeholder-product.jpg"
-      return {
-        title: r.name,
-        price: Number(r.variantPrice ?? 0),
-        image: image || "/placeholder-product.jpg",
-        slug: r.slug,
-        brand: r.brandName,
-      }
-    })
-    return { products: productsList, dbError: false }
-  } catch (err) {
-    console.error("Category products fetch error:", err)
-    return { products: [], dbError: true }
-  }
-}
-
-export default async function CategoryPage({ params }: PageProps) {
+export async function generateMetadata({ params }: PageProps) {
   const { gender } = await params
-  const { products: initialProducts, dbError } = await getProductsByGender(gender)
+  const genderLabel = getGenderLabel(gender)
+  const title = `${genderLabel} ${categoryLabel} | ARTI OPTİK`
+  const description = `${genderLabel} ${categoryLabel} kategorisinde güneş gözlükleri.`
+  return { title, description }
+}
+
+function parseFiltersFromSearchParams(
+  searchParams: { [key: string]: string | string[] | undefined }
+): ProductFilters | undefined {
+  const get = (key: string) => {
+    const v = searchParams[key]
+    return Array.isArray(v) ? v[0] : (v as string | undefined)
+  }
+  const shape = get("shape")?.trim()
+  const color_frame = get("color_frame")?.trim()
+  const material = get("material")?.trim()
+  const color_lens = get("color_lens")?.trim()
+  const feature = get("feature")?.trim()
+  const size = get("size")?.trim()
+  const gender = get("gender")?.trim()
+  const model_code = get("model_code")?.trim()
+  if (
+    !shape &&
+    !color_frame &&
+    !material &&
+    !color_lens &&
+    !feature &&
+    !size &&
+    !gender &&
+    !model_code
+  )
+    return undefined
+  const filters: ProductFilters = {}
+  if (shape) filters.shape = shape
+  if (color_frame) filters.color_frame = color_frame
+  if (material) filters.material = material
+  if (color_lens) filters.color_lens = color_lens
+  if (feature) filters.feature = feature
+  if (size) filters.size = size
+  if (gender) filters.gender = gender
+  if (model_code) filters.model_code = model_code
+  return filters
+}
+
+export default async function CategoryPage({ params, searchParams }: PageProps) {
+  const { gender } = await params
+  const rawParams = await searchParams
+  const dbGender = genderMap[gender.toLowerCase() as GenderSlug] ?? "unisex"
+  const filters = parseFiltersFromSearchParams(rawParams)
+  const { products: initialProducts, dbError } = await getProductsByCategory(
+    dbGender,
+    filters
+  )
 
   return (
     <Suspense

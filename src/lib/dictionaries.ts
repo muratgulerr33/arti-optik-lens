@@ -29,7 +29,7 @@ export function normalizeBasic(value: string): string {
  */
 export function collapseRepeats(value: string): string {
   if (typeof value !== 'string' || !value) return ''
-  let s = value
+  const s = value
   let prev = ''
   let out = ''
   for (let i = 0; i < s.length; i++) {

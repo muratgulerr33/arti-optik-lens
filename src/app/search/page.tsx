@@ -11,7 +11,16 @@ export const metadata: Metadata = {
   },
 }
 
-export default function SearchPage() {
+export default async function SearchPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; brand?: string }>
+}) {
+  const params = await searchParams
+  const q = typeof params.q === "string" ? params.q.trim() : ""
+  const brand = typeof params.brand === "string" ? params.brand.trim() : ""
+  const initialQuery = q || brand || ""
+
   return (
     <Suspense
       fallback={
@@ -24,7 +33,7 @@ export default function SearchPage() {
         </div>
       }
     >
-      <SearchClient />
+      <SearchClient initialQuery={initialQuery} />
     </Suspense>
   )
 }

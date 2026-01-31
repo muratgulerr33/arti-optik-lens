@@ -7,6 +7,7 @@ export const HOME_BRAND_SLUGS = [
   "tom-ford",
   "emperio-armani",
   "michael-kors",
+  "gucci",
 ] as const;
 
 export const HOME_BRAND_DISPLAY_NAMES: Record<(typeof HOME_BRAND_SLUGS)[number], string> = {
@@ -17,4 +18,5 @@ export const HOME_BRAND_DISPLAY_NAMES: Record<(typeof HOME_BRAND_SLUGS)[number],
   "tom-ford": "Tom Ford",
   "emperio-armani": "Emporio Armani",
   "michael-kors": "Michael Kors",
+  gucci: "Gucci",
 };

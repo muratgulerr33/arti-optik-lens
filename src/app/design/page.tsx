@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
 import { Moon, Sun, Palette, Type, MousePointerClick, FileText, Package, Zap, CheckCircle2, AlertCircle } from "lucide-react"
+import { formatPrice } from "@/lib/utils"
 
 export default function DesignPage() {
   const { resolvedTheme, setTheme } = useTheme()
@@ -368,23 +369,23 @@ export default function DesignPage() {
                     Pricing Example
                   </p>
                   <div className="font-numbers text-4xl font-bold text-primary tabular-nums">
-                    ₺15.450,00
+                    {formatPrice(15450 * 100)}
                   </div>
                 </div>
                 <div className="grid grid-cols-3 gap-4 text-center">
                   <div>
                     <p className="text-xs text-muted-foreground mb-1">Regular</p>
-                    <p className="font-numbers text-2xl font-semibold tabular-nums">₺2.500</p>
+                    <p className="font-numbers text-2xl font-semibold tabular-nums">{formatPrice(2500 * 100)}</p>
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground mb-1">Sale</p>
                     <p className="font-numbers text-2xl font-semibold text-destructive tabular-nums line-through">
-                      ₺3.200
+                      {formatPrice(3200 * 100)}
                     </p>
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground mb-1">Final</p>
-                    <p className="font-numbers text-2xl font-bold text-primary tabular-nums">₺2.500</p>
+                    <p className="font-numbers text-2xl font-bold text-primary tabular-nums">{formatPrice(2500 * 100)}</p>
                   </div>
                 </div>
               </div>
@@ -864,9 +865,9 @@ export default function DesignPage() {
               <CardContent className="space-y-4">
                 <div className="flex items-baseline justify-between">
                   <div>
-                    <p className="text-xs text-muted-foreground line-through">₺8.750</p>
+                    <p className="text-xs text-muted-foreground line-through">{formatPrice(8750 * 100)}</p>
                     <p className="font-numbers text-2xl font-bold text-primary tabular-nums">
-                      ₺6.990
+                      {formatPrice(6990 * 100)}
                     </p>
                   </div>
                 </div>
@@ -899,7 +900,7 @@ export default function DesignPage() {
               <CardContent className="space-y-4">
                 <div className="flex items-baseline justify-between">
                   <p className="font-numbers text-2xl font-bold text-primary tabular-nums">
-                    ₺12.450
+                    {formatPrice(12450 * 100)}
                   </p>
                 </div>
                 <div className="flex gap-2">
@@ -935,9 +936,9 @@ export default function DesignPage() {
               <CardContent className="space-y-4">
                 <div className="flex items-baseline justify-between">
                   <div>
-                    <p className="text-xs text-muted-foreground line-through">₺15.900</p>
+                    <p className="text-xs text-muted-foreground line-through">{formatPrice(15900 * 100)}</p>
                     <p className="font-numbers text-2xl font-bold text-primary tabular-nums">
-                      ₺11.900
+                      {formatPrice(11900 * 100)}
                     </p>
                   </div>
                 </div>

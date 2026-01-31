@@ -5,14 +5,18 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-/** Fiyatı kuruş cinsinden alır, TRY metni döner (ondalıksız). */
+/**
+ * Fiyatı kuruş cinsinden alır, "23.900 TL" formatında döner.
+ * - Sembol (₺) kullanmaz
+ * - Ondalık yok
+ */
 export function formatPrice(kurus: number): string {
-  return (kurus / 100).toLocaleString("tr-TR", {
-    style: "currency",
-    currency: "TRY",
+  const tl = kurus / 100
+  const formatted = tl.toLocaleString("tr-TR", {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   })
+  return `${formatted} TL`
 }
 
 /** Ürün adını ekranda göstermek için biçimler; şu an metin aynen döner. */

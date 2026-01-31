@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Toaster } from "sonner";
 
 import { ThemeProvider } from "@/components/theme/theme-provider";
@@ -43,13 +44,15 @@ export default function RootLayout({
           <AuthProvider>
             <FavoritesProvider>
               <CartProvider>
-                <HeaderProvider>
-                  <SearchProvider>
-                    <Header />
-                    {children}
-                    <Footer />
-                  </SearchProvider>
-                </HeaderProvider>
+                <Suspense fallback={<div className="h-16 bg-background border-b" />}>
+                  <HeaderProvider>
+                    <SearchProvider>
+                      <Header />
+                      <main className="pt-16">{children}</main>
+                      <Footer />
+                    </SearchProvider>
+                  </HeaderProvider>
+                </Suspense>
               </CartProvider>
             </FavoritesProvider>
           </AuthProvider>

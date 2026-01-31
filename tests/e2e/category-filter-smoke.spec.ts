@@ -1,5 +1,7 @@
 import { test, expect } from "@playwright/test";
 
+const BASE_URL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3000";
+
 /**
  * PR6 — Category filter SSOT smoke: URL paramları ile filtre sonuçları 0'a düşmesin.
  * Kategori sayfasına query string ile gidip ürün listesinde en az 1 ürün olduğunu doğrular.
@@ -21,7 +23,7 @@ test.describe("Category filter smoke — URL params → page loads, no crash", (
     }) => {
       const params = new URLSearchParams(scenario.query)
       const url = `${BASE_PATH}?${params.toString()}`
-      await page.goto(url)
+      await page.goto(`${BASE_URL}${url}`)
 
       await expect(page).toHaveURL(new RegExp(BASE_PATH))
       // Either product list or empty state is shown (filter did not crash)

@@ -1,6 +1,6 @@
 import { db } from "@/db/connection"
 import { products, productVariants, brands } from "@/db/schema"
-import { asc, eq, and, sql } from "drizzle-orm"
+import { asc, desc, eq, and, ne, inArray, sql } from "drizzle-orm"
 import {
   canonicalizeTerm,
   getFilterDbValues,
@@ -38,6 +38,18 @@ function splitFilterValue(value: string): string[] {
     return trimmed.split("|").map((s) => s.trim()).filter(Boolean)
   }
   return [trimmed]
+}
+
+/**
+ * PDP için product.gender değerini normalize eder.
+ * men => erkek, women => kadin, unisex => unisex; diğerleri olduğu gibi kalır.
+ */
+export function normalizeGender(raw: string): string {
+  const v = (raw ?? "").trim().toLowerCase()
+  if (v === "men") return "erkek"
+  if (v === "women") return "kadin"
+  if (v === "unisex") return "unisex"
+  return raw?.trim() ?? ""
 }
 
 /** Tek filtre tipi için DB değer listesini topla (canonicalize + getFilterDbValues). */
@@ -221,5 +233,91 @@ export async function getProductsByCategory(
   } catch (err) {
     console.error("getProductsByCategory error:", err)
     return { products: [], dbError: true }
+  }
+}
+
+/**
+ * Aynı markadaki diğer ürünleri getirir (PDP "Diğer {Brand} Modellerine Gözat" carousel için).
+ * Canonical brand key (slug) ile filtreler; duplicate brand row'ları olsa bile doğru ürünler gelir.
+ * gender verilirse: unisex => sadece unisex; erkek/kadin => aynı cinsiyet + unisex (önce aynı cinsiyet).
+ */
+export async function getOtherProductsByBrand(
+  brandId: number,
+  excludeProductId: number,
+  limit = 12,
+  gender?: string
+): Promise<CategoryProduct[]> {
+  try {
+    const [brandKey] = await db
+      .select({ slug: brands.slug, name: brands.name })
+      .from(brands)
+      .where(eq(brands.id, brandId))
+      .limit(1)
+    if (!brandKey) return []
+
+    const baseConditions = and(
+      eq(brands.slug, brandKey.slug),
+      ne(products.id, excludeProductId)
+    )
+    const genderCondition =
+      gender === "unisex"
+        ? eq(products.gender, "unisex")
+        : gender
+          ? inArray(products.gender, [gender, "unisex"])
+          : undefined
+    const whereClause =
+      genderCondition ? and(baseConditions, genderCondition) : baseConditions
+
+    const orderByClause =
+      gender && gender !== "unisex"
+        ? [sql`CASE WHEN ${products.gender} = ${gender} THEN 0 ELSE 1 END`, desc(products.id)]
+        : [desc(products.id)]
+
+    const rows = await db
+      .select({
+        pId: products.id,
+        name: products.name,
+        slug: products.slug,
+        brandName: brands.name,
+        variantPrice: productVariants.price,
+        variantImages: productVariants.images,
+      })
+      .from(products)
+      .innerJoin(brands, eq(products.brandId, brands.id))
+      .innerJoin(productVariants, eq(products.id, productVariants.productId))
+      .where(whereClause)
+      .orderBy(...orderByClause)
+      .limit(limit * 2)
+
+    const seen = new Set<number>()
+    const list: typeof rows = []
+    for (const r of rows) {
+      if (seen.has(r.pId) || list.length >= limit) break
+      seen.add(r.pId)
+      list.push(r)
+    }
+
+    return list.map((r) => {
+      const imgs = Array.isArray(r.variantImages) ? r.variantImages : []
+      const firstImg = imgs[0]
+      const image =
+        typeof firstImg === "string"
+          ? firstImg
+          : (firstImg as { src?: string })?.src ?? "/placeholder-product.jpg"
+      const rawPrice = Number(r.variantPrice ?? 0)
+      const priceKurus =
+        rawPrice >= 100_000 ? Math.round(rawPrice) : Math.round(rawPrice * 100)
+      return {
+        id: r.pId,
+        title: r.name,
+        price: priceKurus,
+        image: image || "/placeholder-product.jpg",
+        slug: r.slug,
+        brand: r.brandName,
+      }
+    })
+  } catch (err) {
+    console.error("getOtherProductsByBrand error:", err)
+    return []
   }
 }

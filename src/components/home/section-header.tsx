@@ -17,7 +17,7 @@ export function SectionHeader({
 }: SectionHeaderProps) {
   return (
     <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-      <h2 className="text-xl font-semibold text-foreground sm:text-2xl">
+      <h2 className="font-display text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
         {title}
       </h2>
       {href && (

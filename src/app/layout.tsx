@@ -13,6 +13,7 @@ import { SearchProvider } from "@/components/search/search-provider";
 
 import { fontDisplay, fontBody, fontNumbers } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
+import { PageTransition } from "@/components/app/page-transition";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -48,7 +49,9 @@ export default function RootLayout({
                   <HeaderProvider>
                     <SearchProvider>
                       <Header />
-                      <main className="pt-16">{children}</main>
+                      <main className="pt-16 bg-background">
+                      <PageTransition>{children}</PageTransition>
+                    </main>
                       <Footer />
                     </SearchProvider>
                   </HeaderProvider>

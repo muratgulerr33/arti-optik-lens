@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { formatPrice, formatProductName } from "@/lib/utils";
 import { AddToCart, type AddToCartItemProps } from "@/components/product/add-to-cart";
 
@@ -9,14 +11,23 @@ interface StickyProductBarProps extends AddToCartItemProps {
 
 export function StickyProductBar(props: StickyProductBarProps) {
   const { name, price, disabled = false, ...addToCartProps } = props;
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   if (!name?.trim() || price == null) return null;
 
   const displayName = formatProductName(name);
   const formattedPrice = formatPrice(price);
 
-  return (
-    <div className="fixed bottom-0 inset-x-0 z-50 xl:hidden border-t border-border/10 bg-card/90 backdrop-blur-md">
+  const bar = (
+    <div
+      className="fixed bottom-0 inset-x-0 z-50 xl:hidden border-t border-border/10 bg-card/90 backdrop-blur-md"
+      role="banner"
+      aria-label="Sepete ekle çubuğu"
+    >
       <div className="mx-auto max-w-screen-sm px-4 py-3 pb-[calc(12px+env(safe-area-inset-bottom))]">
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0 flex-1">
@@ -42,4 +53,7 @@ export function StickyProductBar(props: StickyProductBarProps) {
       </div>
     </div>
   );
+
+  if (!mounted || typeof document === "undefined") return null;
+  return createPortal(bar, document.body);
 }

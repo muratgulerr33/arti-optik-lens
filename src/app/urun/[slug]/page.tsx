@@ -10,6 +10,8 @@ import { ProductSpecs } from '@/components/product/product-specs';
 import { AddToCart } from '@/components/product/add-to-cart';
 import { StickyProductBar } from '@/components/product/sticky-product-bar';
 import { Breadcrumbs } from '@/components/product/breadcrumbs';
+import { OtherBrandProductsCarousel } from '@/components/product/other-brand-products-carousel';
+import { getOtherProductsByBrand, normalizeGender } from '@/lib/api/products';
 
 // Force dynamic rendering to prevent build-time DB connection
 export const dynamic = 'force-dynamic';
@@ -213,6 +215,14 @@ export default async function ProductPage({ params }: PageProps) {
     notFound();
   }
 
+  const currentGender = normalizeGender(product.gender);
+  const otherBrandProducts = await getOtherProductsByBrand(
+    product.brand.id,
+    product.id,
+    12,
+    currentGender
+  );
+
   const variant = product.variants[0];
   if (!variant) {
     notFound();
@@ -257,41 +267,47 @@ export default async function ProductPage({ params }: PageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbListJsonLd) }}
       />
       <div className="container mx-auto px-4 pt-4 pb-[calc(96px+env(safe-area-inset-bottom))] xl:pb-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* Sol: Galeri (ana resim + thumbnails) */}
-        <div className="min-w-0">
-          {images.length > 0 ? (
-            <ProductGallery images={images} productName={product.name} />
-          ) : (
-            <div className="aspect-[4/5] bg-muted rounded-lg flex items-center justify-center text-muted-foreground">
-              Görsel yok
-            </div>
-          )}
-        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Sol: Galeri (ana resim + thumbnails) */}
+          <div className="min-w-0">
+            {images.length > 0 ? (
+              <ProductGallery images={images} productName={product.name} />
+            ) : (
+              <div className="aspect-[4/5] bg-muted rounded-lg flex items-center justify-center text-muted-foreground">
+                Görsel yok
+              </div>
+            )}
+          </div>
 
-        {/* Sağ: Breadcrumb, Marka, Başlık, Fiyat, Özellikler, Sepete Ekle */}
-        <div className="space-y-6 min-w-0">
-          <Breadcrumbs items={breadcrumbItems} />
-          <ProductInfo
-            brand={product.brand.name}
-            name={product.name}
-            price={priceKurus}
-            description={product.description}
-          />
-          <ProductSpecs attributes={attributesRecord} />
-          <div className="hidden xl:block">
-            <AddToCart
-              productId={product.id}
-              variantId={variant.id}
+          {/* Sağ: Breadcrumb, Marka, Başlık, Fiyat, Özellikler, Sepete Ekle */}
+          <div className="space-y-6 min-w-0">
+            <Breadcrumbs items={breadcrumbItems} />
+            <ProductInfo
+              brand={product.brand.name}
               name={product.name}
               price={priceKurus}
-              image={images[0] ?? null}
-              slug={product.slug}
-              brand={product.brand.name}
-              disabled={outOfStock}
+              description={product.description}
             />
+            <ProductSpecs attributes={attributesRecord} />
+            <div className="hidden xl:block">
+              <AddToCart
+                productId={product.id}
+                variantId={variant.id}
+                name={product.name}
+                price={priceKurus}
+                image={images[0] ?? null}
+                slug={product.slug}
+                brand={product.brand.name}
+                disabled={outOfStock}
+              />
+            </div>
           </div>
         </div>
+
+        <OtherBrandProductsCarousel
+          brandName={product.brand.name}
+          products={otherBrandProducts}
+        />
       </div>
 
       <StickyProductBar
@@ -304,7 +320,6 @@ export default async function ProductPage({ params }: PageProps) {
         brand={product.brand.name}
         disabled={outOfStock}
       />
-      </div>
     </div>
   );
 }

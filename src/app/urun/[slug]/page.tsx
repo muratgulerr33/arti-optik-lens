@@ -9,9 +9,23 @@ import { ProductInfo } from '@/components/product/product-info';
 import { ProductSpecs } from '@/components/product/product-specs';
 import { AddToCart } from '@/components/product/add-to-cart';
 import { StickyProductBar } from '@/components/product/sticky-product-bar';
+import { Breadcrumbs } from '@/components/product/breadcrumbs';
 
 // Force dynamic rendering to prevent build-time DB connection
 export const dynamic = 'force-dynamic';
+
+const CANONICAL_BASE = 'https://artioptiklens.com.tr';
+const genderLabelMap: Record<string, string> = {
+  kadin: 'Kadın',
+  women: 'Kadın',
+  erkek: 'Erkek',
+  men: 'Erkek',
+  unisex: 'Unisex',
+  kids: 'Çocuk',
+};
+function getGenderLabel(gender: string): string {
+  return genderLabelMap[gender?.toLowerCase() ?? ''] ?? gender;
+}
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -215,8 +229,33 @@ export default async function ProductPage({ params }: PageProps) {
       ? (variant.attributes as Record<string, unknown>)
       : null;
 
+  const genderLabel = getGenderLabel(product.gender);
+  const breadcrumbItems = [
+    { label: 'Anasayfa', href: '/' },
+    { label: `${genderLabel} Güneş Gözlüğü`, href: `/${product.gender}/gunes-gozlugu` },
+    { label: product.name },
+  ];
+
+  const base = CANONICAL_BASE;
+  const breadcrumbListJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: breadcrumbItems.map((item, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      name: item.label,
+      item: {
+        '@id': item.href != null ? new URL(item.href, base).toString() : new URL(`/urun/${product.slug}`, base).toString(),
+      },
+    })),
+  };
+
   return (
     <div>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbListJsonLd) }}
+      />
       <div className="container mx-auto px-4 pt-4 pb-[calc(96px+env(safe-area-inset-bottom))] xl:pb-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Sol: Galeri (ana resim + thumbnails) */}
@@ -230,8 +269,9 @@ export default async function ProductPage({ params }: PageProps) {
           )}
         </div>
 
-        {/* Sağ: Marka, Başlık, Fiyat, Özellikler, Sepete Ekle */}
-        <div className="space-y-6">
+        {/* Sağ: Breadcrumb, Marka, Başlık, Fiyat, Özellikler, Sepete Ekle */}
+        <div className="space-y-6 min-w-0">
+          <Breadcrumbs items={breadcrumbItems} />
           <ProductInfo
             brand={product.brand.name}
             name={product.name}

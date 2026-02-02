@@ -14,7 +14,7 @@ export function HomeBrandGrid() {
         hrefLabel="Tümünü Gör"
         ariaLabel="Tüm ürünleri gör"
       />
-      <div className="grid grid-cols-2 gap-3 overflow-visible">
+      <div className="grid grid-cols-2 gap-3 overflow-visible sm:grid-cols-4">
         {HOME_BRAND_SLUGS.map((slug) => (
           <HomeBrandGridItem
             key={slug}

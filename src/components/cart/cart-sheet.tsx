@@ -17,7 +17,11 @@ import { cn, formatPrice } from "@/lib/utils";
 function CartRow({ item }: { item: CartItem }) {
   const updateQuantity = useCartStore((s) => s.updateQuantity);
   const removeItem = useCartStore((s) => s.removeItem);
-  const img = item.image ?? "/placeholder-product.jpg";
+  const rawImg = item.image ?? "";
+  const img =
+    !rawImg || rawImg.includes("example.com")
+      ? "/placeholder-product.jpg"
+      : rawImg;
 
   return (
     <div className="flex gap-3 py-3 border-b border-border last:border-0">

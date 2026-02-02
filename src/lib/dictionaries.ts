@@ -12,6 +12,18 @@ function trToAscii(s: string): string {
 }
 
 /**
+ * Arama eşleştirme için: lower + TR ascii + tüm non-alnum sil (ray-ban → rayban, Ray Ban → rayban).
+ * Brand/product normalized karşılaştırmada kullanılır.
+ */
+export function normalizeForMatch(value: string): string {
+  if (typeof value !== 'string') return ''
+  let s = value.trim().toLowerCase()
+  s = trToAscii(s)
+  s = s.replace(/[^a-z0-9]+/g, '')
+  return s
+}
+
+/**
  * Katman 1: trim, lower, TR sadeleştirme, boşlukları '-', alfanumerik olmayan karakterleri temizle (tek tire/boşluk bırak).
  */
 export function normalizeBasic(value: string): string {
@@ -29,7 +41,7 @@ export function normalizeBasic(value: string): string {
  */
 export function collapseRepeats(value: string): string {
   if (typeof value !== 'string' || !value) return ''
-  let s = value
+  const s = value
   let prev = ''
   let out = ''
   for (let i = 0; i < s.length; i++) {
@@ -96,34 +108,30 @@ export const TERM_ALIASES: Record<string, string> = {
   sunglass: 'gunes',
   glasses: 'gunes',
   glass: 'gunes',
-  // shape
-  dam: 'damla',
-  daml: 'damla',
-  damlaa: 'damla',
-  damlla: 'damla',
-  aviator: 'damla',
-  pilot: 'damla',
-  yuv: 'yuvarlak',
-  yuva: 'yuvarlak',
-  yuvar: 'yuvarlak',
-  yuvarlk: 'yuvarlak',
-  round: 'yuvarlak',
-  kos: 'koseli',
-  kose: 'koseli',
-  koseli: 'koseli',
-  kare: 'koseli',
-  square: 'koseli',
-  dikdort: 'rectangular',
-  dikd: 'rectangular',
-  rect: 'rectangular',
-  dikdortgen: 'rectangular',
-  rectangular: 'rectangular',
-  cat: 'cat-eye',
-  cateye: 'cat-eye',
+  // shape (alias -> canonical for getFilterDbValues; SHAPE_MAP uses canonical keys)
+  koseli: 'square',
+  kose: 'square',
+  kos: 'square',
+  kare: 'square',
+  square: 'square',
+  damla: 'aviator',
+  dam: 'aviator',
+  daml: 'aviator',
+  damlaa: 'aviator',
+  damlla: 'aviator',
+  pilot: 'aviator',
+  aviator: 'aviator',
+  yuvarlak: 'round',
+  yuv: 'round',
+  yuva: 'round',
+  yuvar: 'round',
+  yuvarlk: 'round',
+  round: 'round',
   cekik: 'cat-eye',
-  kedi: 'cat-eye',
   kedigozu: 'cat-eye',
   'kedi-gozu': 'cat-eye',
+  cat: 'cat-eye',
+  cateye: 'cat-eye',
   butterfly: 'kelebek',
   kelebek: 'kelebek',
   geo: 'geometric',
@@ -132,6 +140,11 @@ export const TERM_ALIASES: Record<string, string> = {
   altigen: 'geometric',
   hex: 'geometric',
   oval: 'oval',
+  dikdort: 'rectangular',
+  dikd: 'rectangular',
+  rect: 'rectangular',
+  dikdortgen: 'rectangular',
+  rectangular: 'rectangular',
   // feature
   pol: 'polarize',
   polar: 'polarize',
@@ -223,25 +236,16 @@ export function normalizeForSearchVariants(value: string): string[] {
 
 // --- SSOT: Filtre değerleri (DB'deki attributes ile eşleşecek) ---
 
+/** DB'de aranacak shape değerleri; key = canonical (TERM_ALIASES ile gelir). */
 export const SHAPE_MAP: Record<string, string[]> = {
-  damla: ['Damla', 'Pilot', 'Aviator'],
+  square: ['Köşeli', 'Kare', 'Square'],
   aviator: ['Damla', 'Pilot', 'Aviator'],
-  pilot: ['Damla', 'Pilot', 'Aviator'],
-  yuvarlak: ['Yuvarlak', 'Round'],
   round: ['Yuvarlak', 'Round'],
-  koseli: ['Kare', 'Köşeli', 'Square'],
-  kare: ['Kare', 'Köşeli', 'Square'],
-  square: ['Kare', 'Köşeli', 'Square'],
-  rectangular: ['Dikdörtgen', 'Rectangular'],
-  dikdortgen: ['Dikdörtgen', 'Rectangular'],
-  oval: ['Oval'],
   'cat-eye': ['Çekik', 'Cat Eye', 'Kedi Gözü'],
-  cekik: ['Çekik', 'Cat Eye', 'Kedi Gözü'],
-  kedi: ['Çekik', 'Cat Eye', 'Kedi Gözü'],
   kelebek: ['Kelebek', 'Butterfly'],
-  butterfly: ['Kelebek', 'Butterfly'],
   geometric: ['Geometrik', 'Geometric', 'Altıgen', 'Sekizgen'],
-  altigen: ['Geometrik', 'Geometric', 'Altıgen', 'Sekizgen'],
+  oval: ['Oval'],
+  rectangular: ['Dikdörtgen', 'Rectangular'],
 }
 
 export const COLOR_MAP: Record<string, string[]> = {

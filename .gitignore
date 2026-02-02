@@ -1,61 +1,69 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# ---------------------------------------------
+# ARTI OPTIK — .gitignore (clean commit)
+# ---------------------------------------------
 
-# dependencies
-/node_modules
-/.pnp
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
-
-# testing
-/coverage
-playwright-report/
-test-results/
-
-# next.js
-/.next/
-/out/
-.turbo/
-
-# production
-/build
-
-# misc
+# macOS / OS junk
 .DS_Store
-*.pem
+.AppleDouble
+.LSOverride
+Icon?
 
-# debug
+# IDE / Editor
+.vscode/
+.idea/
+*.iml
+
+# Node / package managers
+node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+*.log
 
-# env files (can opt-in for committing if needed)
-.env*
+# Next.js / build outputs
+.next/
+out/
+.turbo/
+build/
+dist/
 
-# vercel
-.vercel
+# Hosting platforms
+.vercel/
 
-# typescript
+# Tests / coverage / Playwright
+coverage/
+playwright-report/
+test-results/
+
+# TypeScript incremental build
 *.tsbuildinfo
-next-env.d.ts
 
-# local artifacts
-masterpack-tools.zip
-
-# secrets
+# Env files (secrets)
 .env
 .env.*
+.env.local
+.env.*.local
 
-# seed data (gerçek data commit edilmez, sadece sample commit edilir)
-tools/seed/input/*.full.json
-tools/seed/input/*.full.csv
-# Sample dosya commit edilebilir: tools/seed/input/v1-seed.sample.json
+# Allow safe examples to be committed
+!.env.example
+!.env.sample
+!.env.template
 
-# Large raw imports / bundles (commit dışı)
+# Local artifacts / zips
+masterpack-tools.zip
+
+# Large raw imports / bundles (commit disi)
 import-bundle*/
 import-bundle-v1*/
+
+# Forensics raw dumps (commit disi)
 docs/forensics/raw*/
+docs/forensics/raw/**
+
+# Seed data policy:
+# tools/seed/input altinda SADECE sample / README commit edilir, gercek data edilmez
+tools/seed/input/*
+!tools/seed/input/README.md
+!tools/seed/input/.gitkeep
+!tools/seed/input/v1-seed.sample.json

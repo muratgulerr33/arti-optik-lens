@@ -1,5 +1,5 @@
 {
-  "name": "artioplik",
+  "name": "artioptik",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -9,6 +9,7 @@
     "lint": "eslint",
     "seed:v1": "tsx tools/seed/seed-v1-from-scrape.mjs",
     "seed:brands": "tsx tools/seed/seed-brands.mjs",
+    "seed:wishlist": "tsx tools/seed/seed-wishlist.mjs",
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
     "db:migrate": "drizzle-kit migrate",

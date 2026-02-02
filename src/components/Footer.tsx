@@ -29,7 +29,6 @@ export default function Footer() {
             <ul className="space-y-3 text-sm text-muted-foreground">
               <li><Link href="#" className="hover:text-primary">Sipariş Takibi</Link></li>
               <li><Link href="#" className="hover:text-primary">İade ve Değişim</Link></li>
-              <li><Link href="#" className="hover:text-primary">Sıkça Sorulan Sorular</Link></li>
               <li><Link href="#" className="hover:text-primary">İletişim</Link></li>
             </ul>
           </div>

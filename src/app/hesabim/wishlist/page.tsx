@@ -1,10 +1,5 @@
-import { WishlistClient } from "@/components/favorites/wishlist-client"
+import { redirect } from "next/navigation"
 
-export default function WishlistPage() {
-  return (
-    <div>
-      <h1 className="mb-6 text-2xl font-bold">Favorilerim</h1>
-      <WishlistClient />
-    </div>
-  )
+export default function HesabimWishlistPage() {
+  redirect("/account/wishlist")
 }

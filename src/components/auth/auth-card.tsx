@@ -63,8 +63,16 @@ export function AuthCard() {
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
-  const callbackUrl =
+  const rawCallback =
     searchParams.get("callbackUrl") ?? searchParams.get("returnTo") ?? "/account"
+  // callbackUrl must be internal path only; never full URL or nested
+  const callbackUrl =
+    typeof rawCallback === "string" &&
+    rawCallback.startsWith("/") &&
+    !rawCallback.includes("://") &&
+    !rawCallback.toLowerCase().startsWith("http")
+      ? rawCallback
+      : "/account"
 
   const loginForm = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),

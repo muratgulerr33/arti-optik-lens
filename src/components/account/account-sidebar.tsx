@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils"
 const menuItems = [
   { label: "Profilim", href: "/account" },
   { label: "Siparişlerim", href: "/account/siparisler" },
+  { label: "Favorilerim", href: "/account/wishlist" },
   { label: "Adreslerim", href: "/account/adresler" },
 ]
 

@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { formatPrice, formatProductName } from "@/lib/utils";
 import { cn } from "@/lib/utils";
+import { FavoriteButton } from "@/components/favorites/favorite-button";
 
 interface ProductCardProps {
   title: string;
@@ -9,6 +10,10 @@ interface ProductCardProps {
   image: string;
   slug: string;
   brand: string;
+  /** Ürün ID (favori butonu için; yoksa kalp gösterilmez). */
+  id?: number;
+  /** Wishlist sayfasında favoriden kaldırma (fade-out UX) için kullanılır. */
+  onRemoveFromWishlist?: (productId: number) => Promise<void>;
 }
 
 export function ProductCard({
@@ -17,6 +22,8 @@ export function ProductCard({
   image,
   slug,
   brand,
+  id,
+  onRemoveFromWishlist,
 }: ProductCardProps) {
   const name = formatProductName(title);
   const productHref = `/urun/${slug}`;
@@ -39,6 +46,12 @@ export function ProductCard({
     >
       {/* Image stage: fixed white in both themes (transparent product images on studio white) */}
       <div className="relative w-full overflow-hidden rounded-xl aspect-[4/3] bg-white dark:bg-white ring-1 ring-inset ring-black/10">
+        {id != null && (
+          <FavoriteButton
+            productId={id}
+            onRemoveFromWishlist={onRemoveFromWishlist}
+          />
+        )}
         <Image
           src={image}
           alt={title}

@@ -3,6 +3,7 @@ import { products, productVariants, brands } from "@/db/schema"
 import { eq, inArray } from "drizzle-orm"
 
 export type ProductListEntry = {
+  id: number
   title: string
   price: number
   image: string
@@ -50,6 +51,7 @@ export async function getProductsByIds(
           ? firstImg
           : (firstImg as { src?: string })?.src ?? "/placeholder-product.jpg"
       return {
+        id: r.pId,
         title: r.name,
         price: Number(r.variantPrice ?? 0),
         image: image || "/placeholder-product.jpg",

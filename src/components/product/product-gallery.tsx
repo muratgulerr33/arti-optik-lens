@@ -28,7 +28,6 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
     (node: HTMLDivElement | null) => {
       viewportRef.current = node;
       if (typeof emblaRef === "function") emblaRef(node);
-      else (emblaRef as React.MutableRefObject<HTMLDivElement | null>).current = node;
     },
     [emblaRef]
   );

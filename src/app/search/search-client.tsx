@@ -15,6 +15,7 @@ import { SearchInput } from "@/components/search/search-input"
 import { PopularBrands } from "@/components/search/popular-brands"
 
 type SearchApiItem = {
+  id?: number
   title: string
   price: number
   image: string
@@ -43,17 +44,19 @@ interface SearchClientProps {
 export default function SearchClient({ initialQuery }: SearchClientProps) {
   const searchParams = useSearchParams()
   const q = (searchParams.get("q") ?? searchParams.get("brand") ?? "").trim() || initialQuery
+  const shape = searchParams.get("shape")?.trim() ?? ""
 
   const [items, setItems] = useState<SearchApiItem[]>([])
   const [fallbackItems, setFallbackItems] = useState<SearchApiItem[]>([])
   const [loading, setLoading] = useState(true)
 
-  const fetchSearch = useCallback(async (query: string) => {
+  const fetchSearch = useCallback(async (query: string, shapeParam: string) => {
     setLoading(true)
     try {
       const params = new URLSearchParams()
-      if (query) params.set('q', query)
-      params.set('limit', query ? '100' : '24')
+      if (query) params.set("q", query)
+      if (shapeParam) params.set("shape", shapeParam)
+      params.set("limit", query || shapeParam ? "100" : "24")
       const res = await fetch(`/api/search?${params.toString()}`)
       const data: SearchApiResponse = await res.json()
       setItems(Array.isArray(data.items) ? data.items : [])
@@ -67,8 +70,8 @@ export default function SearchClient({ initialQuery }: SearchClientProps) {
   }, [])
 
   useEffect(() => {
-    fetchSearch(q)
-  }, [q, fetchSearch])
+    fetchSearch(q, shape)
+  }, [q, shape, fetchSearch])
 
   const hasQuery = q.length >= 2
   const showSuggestions = !hasQuery
@@ -164,6 +167,7 @@ export default function SearchClient({ initialQuery }: SearchClientProps) {
                 {filteredResults.map((item) => (
                   <ProductCard
                     key={item.slug}
+                    id={item.id}
                     title={item.title}
                     price={item.price}
                     image={item.image}
@@ -188,6 +192,7 @@ export default function SearchClient({ initialQuery }: SearchClientProps) {
                 {filteredResults.map((item) => (
                   <ProductCard
                     key={item.slug}
+                    id={item.id}
                     title={item.title}
                     price={item.price}
                     image={item.image}
@@ -209,6 +214,7 @@ export default function SearchClient({ initialQuery }: SearchClientProps) {
               {fallbackItems.slice(0, 8).map((item) => (
                 <ProductCard
                   key={item.slug}
+                  id={item.id}
                   title={item.title}
                   price={item.price}
                   image={item.image}

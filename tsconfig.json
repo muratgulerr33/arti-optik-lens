@@ -19,7 +19,8 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@auth/drizzle-adapter/pg": ["./node_modules/@auth/drizzle-adapter/lib/pg.d.ts"]
     }
   },
   "include": [

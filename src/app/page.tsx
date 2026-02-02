@@ -4,6 +4,7 @@ import { eq, desc } from "drizzle-orm";
 import { HomeHeroBanners } from "@/components/home/home-hero-banners";
 import { HomeValueProps } from "@/components/home/home-value-props";
 import { HomeBrandGrid } from "@/components/home/home-brand-grid";
+import { FrameShapeChipSlider } from "@/components/home/frame-shape-chip-slider";
 import { SectionHeader } from "@/components/home/section-header";
 import { ProductGrid } from "@/components/catalog/product-grid";
 import { ProductCard } from "@/components/catalog/product-card";
@@ -11,6 +12,7 @@ import { ProductCard } from "@/components/catalog/product-card";
 export const dynamic = "force-dynamic";
 
 type FeaturedProduct = {
+  id: number;
   title: string;
   price: number;
   image: string;
@@ -22,6 +24,7 @@ async function getFeaturedProducts(): Promise<FeaturedProduct[]> {
   try {
     const rows = await db
       .select({
+        pId: products.id,
         name: products.name,
         slug: products.slug,
         brandName: brands.name,
@@ -44,6 +47,7 @@ async function getFeaturedProducts(): Promise<FeaturedProduct[]> {
       const priceKurus =
         priceNum >= 100_000 ? Math.round(priceNum) : Math.round(priceNum * 100);
       return {
+        id: r.pId,
         title: r.name,
         price: priceKurus,
         image: image || "/placeholder-product.jpg",
@@ -91,6 +95,7 @@ async function getLatestProducts(limit: number): Promise<FeaturedProduct[]> {
       const priceKurus =
         priceNum >= 100_000 ? Math.round(priceNum) : Math.round(priceNum * 100);
       return {
+        id: r.pId,
         title: r.name,
         price: priceKurus,
         image: image || "/placeholder-product.jpg",
@@ -113,6 +118,7 @@ export default async function Home() {
       <HomeHeroBanners />
       <HomeValueProps />
       <HomeBrandGrid />
+      <FrameShapeChipSlider />
       {displayProducts.length > 0 && (
         <section
           aria-label="Öne çıkan ürünler"
@@ -128,6 +134,7 @@ export default async function Home() {
             {displayProducts.map((product) => (
               <ProductCard
                 key={product.slug}
+                id={product.id}
                 title={product.title}
                 price={product.price}
                 image={product.image}

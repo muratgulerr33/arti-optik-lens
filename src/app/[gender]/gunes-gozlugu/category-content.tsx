@@ -8,6 +8,7 @@ import { ActiveFiltersBar } from "@/components/catalog/active-filters-bar"
 import { EmptyState } from "@/components/empty-state"
 
 export type PLPProduct = {
+  id: number
   title: string
   price: number
   image: string
@@ -86,6 +87,7 @@ export function CategoryContent({
             {filteredProducts.map((product) => (
               <ProductCard
                 key={product.slug}
+                id={product.id}
                 title={product.title}
                 price={product.price}
                 image={product.image}

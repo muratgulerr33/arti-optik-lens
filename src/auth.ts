@@ -1,4 +1,7 @@
 import NextAuth from 'next-auth';
+import type { Adapter } from 'next-auth/adapters';
+import type { Session, User } from 'next-auth';
+import type { JWT } from 'next-auth/jwt';
 import { DrizzleAdapter } from '@auth/drizzle-adapter';
 import Credentials from 'next-auth/providers/credentials';
 import { getDbForAdapter } from '@/db/connection';
@@ -6,15 +9,15 @@ import { users, accounts, sessions, verificationTokens } from '@/db/schema';
 import bcrypt from 'bcryptjs';
 import { eq } from 'drizzle-orm';
 
+type AppJWT = JWT & { id?: string; role?: 'user' | 'admin' };
+type AppSessionUser = NonNullable<Session['user']> & { id?: string; role?: 'user' | 'admin' };
+type AppSession = Session & { user?: AppSessionUser };
+
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  // Use getDbForAdapter() so adapter receives real Drizzle instance (Proxy fails is(db, PgDatabase))
-  // Cast to satisfy NextAuth Adapter type vs custom user schema (role) mismatch
-  adapter: DrizzleAdapter(getDbForAdapter(), {
-    usersTable: users as any,
-    accountsTable: accounts as any,
-    sessionsTable: sessions as any,
-    verificationTokensTable: verificationTokens as any,
-  }) as any,
+  adapter: (DrizzleAdapter as (db: unknown, schema?: unknown) => Adapter)(
+    getDbForAdapter(),
+    { usersTable: users, accountsTable: accounts, sessionsTable: sessions, verificationTokensTable: verificationTokens }
+  ),
   providers: [
     Credentials({
       credentials: {
@@ -60,20 +63,21 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   ],
   callbacks: {
     async jwt({ token, user }) {
-      // On login, add user role and id to token
+      const t = token as unknown as AppJWT;
       if (user) {
-        token.id = user.id ?? '';
-        token.role = user.role;
+        t.id = user.id ?? '';
+        t.role = (user as User & { role?: 'user' | 'admin' }).role;
       }
-      return token;
+      return t;
     },
     async session({ session, token }) {
-      // Add role and id to session from token
-      if (session.user) {
-        session.user.id = token.id as string;
-        session.user.role = token.role as 'user' | 'admin';
+      const s = session as AppSession;
+      const t = token as AppJWT;
+      if (s.user) {
+        s.user.id = t.id as string;
+        s.user.role = t.role;
       }
-      return session;
+      return s;
     },
   },
   session: {
